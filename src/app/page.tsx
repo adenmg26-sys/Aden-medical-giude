@@ -20,6 +20,8 @@ import { useLiveQuery } from "dexie-react-hooks";
 import LastSyncIndicator from "@/components/ui/LastSyncIndicator";
 import SkeletonCard from "@/components/ui/SkeletonCard";
 
+import Image from "next/image";
+
 export default function Home() {
   const router = useRouter();
   
@@ -87,7 +89,7 @@ export default function Home() {
               {/* Image Background */}
               {currentAd.imageUrl && (
                 <div className="absolute inset-0 z-0">
-                   <img src={currentAd.imageUrl} alt={currentAd.title} className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" />
+                   <Image src={currentAd.imageUrl} alt={currentAd.title} fill className="object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" />
                    <div className="absolute inset-0 bg-gradient-to-l from-transparent to-slate-900/90" />
                 </div>
               )}

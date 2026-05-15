@@ -8,12 +8,14 @@ import { WelcomeModal } from "@/components/ui/WelcomeModal";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const tajawal = Tajawal({
   variable: "--font-tajawal",
   subsets: ["arabic"],
-  weight: ["300", "400", "500", "700"],
+  weight: ["400", "500", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {

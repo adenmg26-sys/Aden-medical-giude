@@ -19,7 +19,7 @@ export default function AdminContributionsPage() {
   // Move Modal using unified ProviderForm
   const [moveModal, setMoveModal] = useState<any>(null);
   const [formData, setFormData] = useState<ProviderFormData>({
-    type: "doctors", name: "", specialty: "", district: "دار سعد", address: "", phone: "", whatsapp: "", image: "", verified: false,
+    type: "doctors", name: "", specialty: "", district: "دار سعد", address: "", phone: "", whatsapp: "", image: "", mapLink: "", verified: false,
     shifts: [{ day: "", time: "", location: "" }],
     centerHours: { openTime: "", closeTime: "", is24h: false }
   });
@@ -58,6 +58,7 @@ export default function AdminContributionsPage() {
       phone: contrib.phone || "",
       whatsapp: contrib.whatsapp || "",
       image: "",
+      mapLink: contrib.map_link || "",
       verified: false,
       shifts: contrib.shifts || [{ day: "", time: "", location: "" }],
       centerHours: contrib.center_hours || { openTime: "", closeTime: "", is24h: false }
@@ -77,6 +78,7 @@ export default function AdminContributionsPage() {
       phone: formData.phone,
       whatsapp: formData.whatsapp,
       image: formData.image,
+      map_link: formData.mapLink,
       verified: formData.verified,
       status: "مفعل",
       updated_at: new Date().toISOString()

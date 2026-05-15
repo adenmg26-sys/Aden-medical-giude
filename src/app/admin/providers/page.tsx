@@ -5,6 +5,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Plus, Edit2, Trash2, Search, Filter, X, Save, ShieldCheck, ShieldOff, Eye } from "lucide-react";
 import { adenDistricts } from "@/data/districts";
 import { ProviderForm, ProviderFormData } from "@/components/admin/ProviderForm";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -33,6 +34,7 @@ export default function AdminProvidersPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<ProviderFormData>(emptyFormData);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const currentList = activeTab === "doctors" ? doctors : activeTab === "centers" ? centers : pending;
 
@@ -60,10 +62,11 @@ export default function AdminProvidersPage() {
   };
 
   const openAddModal = () => { setEditingId(null); setViewOnly(false); setFormData({...emptyFormData, type: activeTab === "pending" ? "doctors" : activeTab}); setIsModalOpen(true); };
-  const openViewModal = (item: any) => { setEditingId(item.id); setViewOnly(true); loadFormFromItem(item); setIsModalOpen(true); };
-  const openEditModal = (item: any) => { setEditingId(item.id); setViewOnly(false); loadFormFromItem(item); setIsModalOpen(true); };
+  const openViewModal = (item: any) => { setEditingId(item.id); setViewOnly(true); loadFormFromItem(item); setIsModalOpen(true); setIsUploading(false); };
+  const openEditModal = (item: any) => { setEditingId(item.id); setViewOnly(false); loadFormFromItem(item); setIsModalOpen(true); setIsUploading(false); };
 
   const handleSave = async () => {
+    if (isUploading) return;
     if (!formData.name) {
       alert("يرجى إدخال الاسم");
       return;
@@ -180,7 +183,11 @@ export default function AdminProvidersPage() {
             <tbody>
               {filteredList.length === 0 ? <tr><td colSpan={8} className="p-8 text-center text-slate-400 font-bold">لا توجد نتائج</td></tr> : filteredList.map((item) => (
                 <tr key={item.id} className="border-b border-slate-50 hover:bg-blue-50/30 transition-colors">
-                  <td className="p-3"><div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-lg">{item.image ? <img src={item.image} className="w-10 h-10 rounded-lg object-cover" alt="" /> : (activeTab === "doctors" ? "👨‍⚕️" : "🏥")}</div></td>
+                  <td className="p-3">
+                    <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-lg relative overflow-hidden">
+                      {item.image ? <Image src={item.image} fill className="object-cover" unoptimized={item.image.startsWith('data:')} alt="" /> : (activeTab === "doctors" ? "👨‍⚕️" : "🏥")}
+                    </div>
+                  </td>
                   <td className="p-3 text-sm font-bold text-slate-800">{item.name}</td>
                   <td className="p-3 text-xs text-slate-600">{item.specialty}</td>
                   <td className="p-3 text-xs text-slate-600">{item.district}</td>
@@ -210,11 +217,11 @@ export default function AdminProvidersPage() {
               <button onClick={() => setIsModalOpen(false)} className="p-1.5 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200"><X size={18} /></button>
             </div>
             <div className="p-5 overflow-y-auto flex-1 custom-scrollbar">
-              <ProviderForm data={formData} onChange={setFormData} viewOnly={viewOnly} hideTypeSelect={viewOnly} />
+              <ProviderForm data={formData} onChange={setFormData} viewOnly={viewOnly} hideTypeSelect={viewOnly} onUploadStateChange={setIsUploading} />
             </div>
             <div className="p-5 border-t border-slate-100 flex gap-3 shrink-0 bg-white">
               <button onClick={() => setIsModalOpen(false)} className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50">{viewOnly ? "إغلاق" : "إلغاء"}</button>
-              {!viewOnly && <button onClick={handleSave} className="flex-1 py-3 bg-primary-blue text-white rounded-xl text-sm font-bold shadow-md shadow-primary-blue/20 hover:bg-blue-700 flex items-center justify-center gap-2"><Save size={16} /> {editingId ? "حفظ التعديلات" : "إضافة"}</button>}
+              {!viewOnly && <button onClick={handleSave} disabled={isUploading} className="flex-1 py-3 bg-primary-blue text-white rounded-xl text-sm font-bold shadow-md shadow-primary-blue/20 hover:bg-blue-700 flex items-center justify-center gap-2 disabled:opacity-50"><Save size={16} /> {editingId ? "حفظ التعديلات" : "إضافة"}</button>}
               {viewOnly && <button onClick={() => setViewOnly(false)} className="flex-1 py-3 bg-primary-blue text-white rounded-xl text-sm font-bold shadow-md shadow-primary-blue/20 hover:bg-blue-700 flex items-center justify-center gap-2"><Edit2 size={16} /> تعديل</button>}
             </div>
           </div>

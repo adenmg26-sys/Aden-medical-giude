@@ -2,8 +2,10 @@
 
 import React, { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Plus, Trash2, X, Save, Upload, Eye, EyeOff, GripVertical, Image as ImageIcon } from "lucide-react";
+import { Plus, Trash2, X, Save, Upload, Eye, EyeOff, GripVertical, Image as ImageIcon, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import imageCompression from "browser-image-compression";
+import Image from "next/image";
 import { db } from "@/lib/db";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useEffect } from "react";
@@ -16,6 +18,7 @@ export default function AdminAdsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ title: "", description: "", imageUrl: "", link: "", active: true });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const openAddModal = () => {
     setEditingId(null);
@@ -29,19 +32,34 @@ export default function AdminAdsPage() {
     setIsModalOpen(true);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setForm(prev => ({ ...prev, imageUrl: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      setIsUploading(true);
+      try {
+        const options = {
+          maxSizeMB: 0.3,
+          maxWidthOrHeight: 1200,
+          useWebWorker: true,
+          fileType: 'image/webp'
+        };
+        const compressedFile = await imageCompression(file, options);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setForm(prev => ({ ...prev, imageUrl: reader.result as string }));
+          setIsUploading(false);
+        };
+        reader.readAsDataURL(compressedFile);
+      } catch (err) {
+        console.error("Compression error:", err);
+        alert("حدث خطأ أثناء ضغط الصورة");
+        setIsUploading(false);
+      }
     }
   };
 
   const handleSave = async () => {
-    if (!form.title || !supabase) return;
+    if (!form.title || !supabase || isUploading) return;
     
     const dataToSave = {
       ...form,
@@ -104,9 +122,9 @@ export default function AdminAdsPage() {
           ads.map(ad => (
             <GlassCard key={ad.id} className={`overflow-hidden ${!ad.active ? "opacity-60" : ""}`}>
               {/* Ad Preview */}
-              <div className="h-36 bg-gradient-to-l from-primary-blue/20 to-primary-red/10 flex items-center justify-center relative">
+              <div className="h-36 bg-gradient-to-l from-primary-blue/20 to-primary-red/10 flex items-center justify-center relative overflow-hidden">
                 {ad.imageUrl ? (
-                  <img src={ad.imageUrl} alt={ad.title} className="w-full h-full object-cover" />
+                  <Image src={ad.imageUrl} alt={ad.title} fill className="object-cover" unoptimized={ad.imageUrl.startsWith('data:')} />
                 ) : (
                   <div className="flex flex-col items-center text-slate-400 gap-1">
                     <ImageIcon size={32} />
@@ -175,7 +193,17 @@ export default function AdminAdsPage() {
                   </label>
                 </div>
                 <p className="text-[10px] text-slate-400 flex items-center gap-1"><ImageIcon size={10} /> القياس الموصى به: <span className="font-bold font-sans">1200 × 400 بكسل</span> (نسبة 3:1 أفقية) للعرض الأمثل في شريط الإعلانات.</p>
-                {form.imageUrl && <img src={form.imageUrl} alt="معاينة" className="w-full h-32 object-cover rounded-lg mt-2 border border-slate-200" />}
+                
+                {isUploading ? (
+                  <div className="w-full h-32 bg-slate-100 rounded-lg mt-2 border border-slate-200 flex flex-col items-center justify-center gap-2 text-slate-400">
+                    <Loader2 size={24} className="animate-spin" />
+                    <span className="text-xs font-bold">جاري ضغط الصورة...</span>
+                  </div>
+                ) : form.imageUrl && (
+                  <div className="relative w-full h-32 rounded-lg mt-2 border border-slate-200 overflow-hidden">
+                    <Image src={form.imageUrl} alt="معاينة" fill className="object-cover" unoptimized={form.imageUrl.startsWith('data:')} />
+                  </div>
+                )}
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700">رابط الإعلان (اختياري)</label>
@@ -189,7 +217,7 @@ export default function AdminAdsPage() {
             </div>
             <div className="p-5 border-t border-slate-100 flex gap-3">
               <button onClick={() => setIsModalOpen(false)} className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
-              <button onClick={handleSave} className="flex-1 py-3 bg-primary-blue text-white rounded-xl text-sm font-bold shadow-md hover:bg-blue-700 flex items-center justify-center gap-2">
+              <button onClick={handleSave} disabled={isUploading} className="flex-1 py-3 bg-primary-blue text-white rounded-xl text-sm font-bold shadow-md hover:bg-blue-700 flex items-center justify-center gap-2 disabled:opacity-50">
                 <Save size={16} /> {editingId ? "حفظ" : "إضافة"}
               </button>
             </div>

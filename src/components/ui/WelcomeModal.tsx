@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { Zap, WifiOff, X, ArrowLeft, Download } from 'lucide-react';
 import { GlassCard } from './GlassCard';
 
+import Image from 'next/image';
+
 export const WelcomeModal = () => {
   const [showWelcome, setShowWelcome] = useState(false);
   const [showPwaPrompt, setShowPwaPrompt] = useState(false);
@@ -80,8 +82,8 @@ export const WelcomeModal = () => {
             {/* Logo area */}
             <div className="relative mb-6">
               <div className="absolute inset-0 bg-primary-blue/30 blur-xl rounded-full"></div>
-              <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center relative z-10 border border-white/20 shadow-lg p-2">
-                <img src="/logo.png" alt="مرشد عدن الطبي" className="w-full h-full object-contain" />
+              <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center relative z-10 border border-white/20 shadow-lg p-2 overflow-hidden">
+                <Image src="/logo.png" alt="مرشد عدن الطبي" fill className="object-contain p-2" />
               </div>
             </div>
 

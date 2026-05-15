@@ -14,6 +14,7 @@ export interface Provider {
   verified: boolean;
   status: string;
   image?: string;
+  map_link?: string;
   shifts?: WorkShift[]; // For doctors
   center_hours?: CenterHours; // For centers
   updated_at?: string; // To track sync status

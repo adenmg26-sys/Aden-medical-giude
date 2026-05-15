@@ -1,7 +1,9 @@
 "use client";
 
-import React from "react";
-import { Upload } from "lucide-react";
+import React, { useState } from "react";
+import { Upload, Loader2 } from "lucide-react";
+import imageCompression from "browser-image-compression";
+import Image from "next/image";
 import { adenDistricts } from "@/data/districts";
 import { WorkShift, CenterHours } from "@/data/workingHours";
 import { DoctorShiftsForm, CenterHoursForm } from "@/components/admin/WorkingHoursForm";
@@ -27,24 +29,46 @@ type ProviderFormProps = {
   onChange: (data: ProviderFormData) => void;
   viewOnly?: boolean;
   hideTypeSelect?: boolean;
+  onUploadStateChange?: (uploading: boolean) => void;
 };
 
-export function ProviderForm({ data, onChange, viewOnly = false, hideTypeSelect = false }: ProviderFormProps) {
+export function ProviderForm({ data, onChange, viewOnly = false, hideTypeSelect = false, onUploadStateChange }: ProviderFormProps) {
+  const [localUploading, setLocalUploading] = useState(false);
+
   const updateField = (field: keyof ProviderFormData, value: any) => {
     onChange({ ...data, [field]: value });
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // For now, convert to base64 for preview. 
-    // In production, you should upload to Supabase Storage.
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      updateField("image", reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    setLocalUploading(true);
+    if (onUploadStateChange) onUploadStateChange(true);
+
+    try {
+      const options = {
+        maxSizeMB: 0.3,
+        maxWidthOrHeight: 800,
+        useWebWorker: true,
+        fileType: 'image/webp'
+      };
+      
+      const compressedFile = await imageCompression(file, options);
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateField("image", reader.result as string);
+        setLocalUploading(false);
+        if (onUploadStateChange) onUploadStateChange(false);
+      };
+      reader.readAsDataURL(compressedFile);
+    } catch (error) {
+      console.error("Image compression error:", error);
+      alert("حدث خطأ أثناء ضغط الصورة.");
+      setLocalUploading(false);
+      if (onUploadStateChange) onUploadStateChange(false);
+    }
   };
 
   const allSpecialties = specialtyGroups.flatMap(g => g.specialties);
@@ -69,12 +93,14 @@ export function ProviderForm({ data, onChange, viewOnly = false, hideTypeSelect 
       {/* Image Upload */}
       <div className="flex items-center gap-4">
         <div className="relative group w-20 h-20 bg-slate-100 rounded-xl flex items-center justify-center border-2 border-dashed border-slate-300 shrink-0 overflow-hidden">
-          {data.image ? (
-            <img src={data.image} className="w-full h-full object-cover" alt="" />
+          {localUploading ? (
+            <Loader2 size={24} className="text-slate-400 animate-spin" />
+          ) : data.image ? (
+            <Image src={data.image} alt="Provider" fill className="object-cover" unoptimized={data.image.startsWith('data:')} />
           ) : (
             <Upload size={24} className="text-slate-400" />
           )}
-          {!viewOnly && (
+          {!viewOnly && !localUploading && (
             <input 
               type="file" 
               accept="image/*"
