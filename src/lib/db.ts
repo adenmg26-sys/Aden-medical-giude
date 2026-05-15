@@ -63,6 +63,14 @@ export interface Notification {
   date: string;
 }
 
+export interface SyncAction {
+  id?: number;
+  table: string;
+  action: 'insert' | 'update' | 'delete';
+  data: any;
+  timestamp: string;
+}
+
 export class AdenMedicalDB extends Dexie {
   // Table definitions
   providers!: Table<Provider>;
@@ -71,18 +79,20 @@ export class AdenMedicalDB extends Dexie {
   reports!: Table<Report>;
   settings!: Table<AppSetting>;
   notifications!: Table<Notification>;
+  sync_queue!: Table<SyncAction>;
 
   constructor() {
     super('AdenMedicalDB');
     
     // Define schema
-    this.version(5).stores({
+    this.version(6).stores({
       providers: 'id, type, name, specialty, district, status, updated_at',
       ads: 'id, active, updated_at',
       messages: 'id, status, date',
       reports: 'id, status, date',
       settings: 'key',
-      notifications: 'id, read, date'
+      notifications: 'id, read, date',
+      sync_queue: '++id, table, action, timestamp'
     });
   }
 }

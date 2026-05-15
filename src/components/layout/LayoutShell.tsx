@@ -8,6 +8,11 @@ import { useSync } from "@/hooks/useSync";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { AlertTriangle, Clock, WifiOff } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const WelcomeModal = dynamic(() => import("@/components/ui/WelcomeModal").then(mod => mod.WelcomeModal), {
+  ssr: false
+});
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -67,6 +72,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       {!isAdmin && <BottomNav />}
+      {!isAdmin && <WelcomeModal />}
     </>
   );
 }

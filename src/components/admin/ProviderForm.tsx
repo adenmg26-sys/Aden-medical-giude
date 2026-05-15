@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Upload, Loader2 } from "lucide-react";
-import imageCompression from "browser-image-compression";
+// Dynamically imported in handleImageUpload
 import Image from "next/image";
 import { adenDistricts } from "@/data/districts";
 import { WorkShift, CenterHours } from "@/data/workingHours";
@@ -47,6 +47,7 @@ export function ProviderForm({ data, onChange, viewOnly = false, hideTypeSelect 
     if (onUploadStateChange) onUploadStateChange(true);
 
     try {
+      const imageCompression = (await import("browser-image-compression")).default;
       const options = {
         maxSizeMB: 0.3,
         maxWidthOrHeight: 800,

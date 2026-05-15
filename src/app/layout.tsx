@@ -3,7 +3,6 @@ import { Inter, Tajawal } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { LayoutShell } from "@/components/layout/LayoutShell";
-import { WelcomeModal } from "@/components/ui/WelcomeModal";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -43,7 +42,6 @@ export default function RootLayout({
       <body className="min-h-screen font-arabic bg-background text-foreground flex flex-col">
         <LayoutShell>
           {children}
-          <WelcomeModal />
         </LayoutShell>
       </body>
     </html>

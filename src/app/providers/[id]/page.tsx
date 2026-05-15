@@ -68,40 +68,44 @@ export default function ProviderDetailPage() {
 
   const handleReportSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!supabase) return;
-
+    
     const formData = new FormData(e.currentTarget);
     const content = formData.get('content') as string;
     const contact = formData.get('contact') as string;
 
-    try {
-      const { error } = await supabase.from('reports').insert([
-        {
-          provider_id: id,
-          provider_name: provider.name,
-          content,
-          user_contact: contact,
-          status: 'جديد',
-          date: new Date().toISOString()
-        }
-      ]);
+    const reportData = {
+      provider_id: id,
+      provider_name: provider.name,
+      content,
+      user_contact: contact,
+      status: 'جديد',
+      date: new Date().toISOString()
+    };
 
-      if (error) throw error;
+    try {
+      // 1. Save to local DB immediately for UI consistency
+      await db.reports.add(reportData as any);
       
-      await supabase.from('notifications').insert([{
-        title: 'بلاغ تصحيح جديد',
-        description: `تم إرسال بلاغ لتصحيح بيانات: ${provider.name}`,
-        type: 'report',
-        read: false,
-        date: new Date().toISOString()
-      }]);
+      // 2. Queue for remote sync
+      await db.sync_queue.add({
+        table: 'reports',
+        action: 'insert',
+        data: reportData,
+        timestamp: new Date().toISOString()
+      });
+
+      // 3. Try to sync immediately if online
+      if (navigator.onLine && supabase) {
+        // We don't await here to not block UI, useSync will handle it
+      }
+
       setReportSuccess(true);
       setTimeout(() => {
         setIsReportOpen(false);
         setReportSuccess(false);
       }, 3000);
     } catch (err) {
-      alert("عذراً، فشل إرسال التبليغ. يرجى المحاولة لاحقاً.");
+      alert("عذراً، فشل إرسال التبليغ محلياً.");
     }
   };
 

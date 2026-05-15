@@ -28,35 +28,35 @@ export default function ContactPage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.message || !supabase) return;
+    if (!form.name || !form.message) return;
     if (honeypot) return; // Anti-spam honeypot
 
     setLoading(true);
-    try {
-      const { error } = await supabase.from('messages').insert([
-        { 
-          name: form.name, 
-          contact: form.contact, 
-          content: form.message,
-          status: 'جديد',
-          date: new Date().toISOString()
-        }
-      ]);
+    const messageData = { 
+      name: form.name, 
+      contact: form.contact, 
+      content: form.message,
+      status: 'جديد',
+      date: new Date().toISOString()
+    };
 
-      if (error) throw error;
-      
-      await supabase.from('notifications').insert([{
-        title: 'رسالة جديدة',
-        description: `تلقيت رسالة من ${form.name}`,
-        type: 'message',
-        read: false,
-        date: new Date().toISOString()
-      }]);
+    try {
+      // 1. Save to local DB
+      await db.messages.add(messageData as any);
+
+      // 2. Queue for sync
+      await db.sync_queue.add({
+        table: 'messages',
+        action: 'insert',
+        data: messageData,
+        timestamp: new Date().toISOString()
+      });
+
       setSuccess(true);
       setForm({ name: "", contact: "", message: "" });
       setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
-      alert("عذراً، فشل إرسال الرسالة. يرجى المحاولة لاحقاً.");
+      alert("عذراً، فشل حفظ الرسالة محلياً.");
     } finally {
       setLoading(false);
     }
