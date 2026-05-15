@@ -11,7 +11,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 
 const emptyFormData: ProviderFormData = {
   type: "doctors",
-  name: "", specialty: "", district: "دار سعد", address: "", phone: "", whatsapp: "", image: "", verified: false,
+  name: "", specialty: "", district: "دار سعد", address: "", phone: "", whatsapp: "", image: "", mapLink: "", verified: false,
   shifts: [{ day: "", time: "", location: "" }],
   centerHours: { openTime: "", closeTime: "", is24h: false }
 };
@@ -52,6 +52,7 @@ export default function AdminProvidersPage() {
       phone: item.phone || "",
       whatsapp: item.whatsapp || "",
       image: item.image || "",
+      mapLink: item.map_link || "",
       verified: item.verified || false,
       shifts: item.shifts?.length ? [...item.shifts] : [{ day: "", time: "", location: "" }],
       centerHours: item.center_hours || { openTime: "", closeTime: "", is24h: false }
@@ -63,7 +64,18 @@ export default function AdminProvidersPage() {
   const openEditModal = (item: any) => { setEditingId(item.id); setViewOnly(false); loadFormFromItem(item); setIsModalOpen(true); };
 
   const handleSave = async () => {
-    if (!formData.name || !formData.specialty || !supabase) return;
+    if (!formData.name) {
+      alert("يرجى إدخال الاسم");
+      return;
+    }
+    if (!formData.specialty) {
+      alert("يرجى إدخال التخصص");
+      return;
+    }
+    if (!supabase) {
+      alert("خطأ في الاتصال بقاعدة البيانات");
+      return;
+    }
     
     const dataToSave: any = {
       type: formData.type,
@@ -74,6 +86,7 @@ export default function AdminProvidersPage() {
       phone: formData.phone, 
       whatsapp: formData.whatsapp, 
       image: formData.image, 
+      map_link: formData.mapLink,
       verified: formData.verified, 
       status: "مفعل",
       updated_at: new Date().toISOString()

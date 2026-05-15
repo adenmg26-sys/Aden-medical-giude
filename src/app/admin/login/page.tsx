@@ -13,6 +13,8 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [success, setSuccess] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,29 +25,47 @@ export default function AdminLoginPage() {
 
     setLoading(true);
     setError("");
+    setSuccess("");
 
     try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      if (isSignUp) {
+        const { data, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+        });
 
-      if (authError) {
-        if (authError.message.includes("Invalid login")) {
-          setError("البريد الإلكتروني أو كلمة المرور غير صحيحة.");
-        } else {
+        if (authError) {
           setError(authError.message);
+          setLoading(false);
+          return;
         }
+        
+        setSuccess("تم إنشاء الحساب بنجاح. يمكنك تسجيل الدخول الآن (قد يحتاج المدير لتفعيل حسابك).");
+        setIsSignUp(false);
         setLoading(false);
-        return;
-      }
+      } else {
+        const { data, error: authError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-      if (data.session) {
-        // Save auth state
-        localStorage.setItem("admin_auth", "true");
-        localStorage.setItem("admin_user_email", data.user?.email || "");
-        localStorage.setItem("admin_user_id", data.user?.id || "");
-        router.push("/admin");
+        if (authError) {
+          if (authError.message.includes("Invalid login")) {
+            setError("البريد الإلكتروني أو كلمة المرور غير صحيحة.");
+          } else {
+            setError(authError.message);
+          }
+          setLoading(false);
+          return;
+        }
+
+        if (data.session) {
+          // Save auth state
+          localStorage.setItem("admin_auth", "true");
+          localStorage.setItem("admin_user_email", data.user?.email || "");
+          localStorage.setItem("admin_user_id", data.user?.id || "");
+          router.push("/admin");
+        }
       }
     } catch (err: any) {
       setError("حدث خطأ غير متوقع. يرجى المحاولة لاحقاً.");
@@ -65,7 +85,7 @@ export default function AdminLoginPage() {
           <div className="w-20 h-20 bg-white shadow-xl shadow-primary-blue/20 rounded-3xl mx-auto flex items-center justify-center border border-white mb-4">
             <ShieldCheck size={40} className="text-primary-blue" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-800">بوابة الإدارة</h1>
+          <h1 className="text-2xl font-bold text-slate-800">{isSignUp ? "إنشاء حساب جديد" : "بوابة الإدارة"}</h1>
           <p className="text-slate-500 text-sm">مرشد عدن الطبي</p>
         </div>
 
@@ -106,6 +126,12 @@ export default function AdminLoginPage() {
                 <AlertCircle size={14} /> {error}
               </div>
             )}
+            
+            {success && (
+              <div className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-500 rounded-xl text-xs text-center font-bold flex items-center justify-center gap-2">
+                <ShieldCheck size={14} /> {success}
+              </div>
+            )}
 
             <button 
               type="submit"
@@ -115,10 +141,23 @@ export default function AdminLoginPage() {
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <>تسجيل الدخول <ArrowRight size={18} /></>
+                <>{isSignUp ? "إنشاء حساب" : "تسجيل الدخول"} <ArrowRight size={18} /></>
               )}
             </button>
           </form>
+
+          <div className="mt-4 text-center">
+            <button 
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError("");
+                setSuccess("");
+              }}
+              className="text-xs text-primary-blue hover:underline font-bold"
+            >
+              {isSignUp ? "لديك حساب بالفعل؟ سجل دخولك" : "ليس لديك حساب؟ أنشئ حساباً جديداً"}
+            </button>
+          </div>
         </GlassCard>
         
         <div className="mt-8 text-center">

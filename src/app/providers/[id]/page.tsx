@@ -209,7 +209,20 @@ export default function ProviderDetailPage() {
                 <h3 className="text-sm font-bold text-slate-800 mb-0.5">العنوان</h3>
                 <p className="text-xs text-slate-600 leading-relaxed">{provider.district} - {provider.address}</p>
               </div>
-              <button className="p-2 bg-primary-blue/10 text-primary-blue rounded-lg"><Navigation size={18}/></button>
+              <button 
+                onClick={() => {
+                  if (provider.map_link) {
+                    window.open(provider.map_link, '_blank');
+                  } else {
+                    const query = encodeURIComponent(`${provider.district} ${provider.address || provider.name}`);
+                    window.open(`https://maps.google.com/?q=${query}`, '_blank');
+                  }
+                }}
+                className="p-2 bg-primary-blue/10 text-primary-blue rounded-lg hover:bg-primary-blue/20 transition-colors"
+                title="عرض على الخريطة"
+              >
+                <Navigation size={18}/>
+              </button>
             </div>
           </GlassCard>
 

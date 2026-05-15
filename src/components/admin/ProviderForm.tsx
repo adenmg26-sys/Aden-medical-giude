@@ -16,6 +16,7 @@ export type ProviderFormData = {
   phone: string;
   whatsapp: string;
   image: string;
+  mapLink: string;
   verified: boolean;
   shifts: WorkShift[];
   centerHours: CenterHours;
@@ -162,6 +163,19 @@ export function ProviderForm({ data, onChange, viewOnly = false, hideTypeSelect 
             className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 disabled:opacity-60" 
           />
         </div>
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-xs font-bold text-slate-700">رابط الخريطة (Google Maps)</label>
+        <input 
+          type="url" 
+          value={data.mapLink || ""} 
+          disabled={viewOnly}
+          onChange={(e) => updateField("mapLink", e.target.value)}
+          placeholder="https://maps.google.com/..."
+          dir="ltr"
+          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 disabled:opacity-60 text-left font-sans" 
+        />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
