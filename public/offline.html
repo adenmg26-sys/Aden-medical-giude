@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أنت غير متصل بالإنترنت - مرشد عدن الطبي</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #17437a;
+        }
+        p {
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        button {
+            background-color: #17437a;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📡❌</div>
+        <h1>أنت غير متصل بالإنترنت</h1>
+        <p>عذراً، يبدو أنك غير متصل بالإنترنت حالياً. يرجى التأكد من الاتصال ومحاولة إعادة تحميل الصفحة.</p>
+        <p style="font-size: 12px;">ملاحظة: إذا كنت قد قمت بتثبيت التطبيق مسبقاً، فستتمكن من تصفح البيانات المحملة حتى بدون إنترنت.</p>
+        <button onclick="window.location.reload()">إعادة المحاولة</button>
+    </div>
+</body>
+</html>

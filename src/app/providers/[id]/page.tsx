@@ -278,7 +278,7 @@ export default function ProviderDetailPage() {
         </div>
       </div>
 
-      {/* Report Modal */}
+      {/* Report Modal - Conditional Render */}
       {isReportOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-slate-900/60 backdrop-blur-sm">
           <GlassCard className="w-full max-w-sm p-6 bg-white/95">
