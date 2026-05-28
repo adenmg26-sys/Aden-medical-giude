@@ -33,9 +33,10 @@ type ProviderFormProps = {
   viewOnly?: boolean;
   hideTypeSelect?: boolean;
   onUploadStateChange?: (uploading: boolean) => void;
+  isStaff?: boolean;
 };
 
-export function ProviderForm({ data, onChange, viewOnly = false, hideTypeSelect = false, onUploadStateChange }: ProviderFormProps) {
+export function ProviderForm({ data, onChange, viewOnly = false, hideTypeSelect = false, onUploadStateChange, isStaff = false }: ProviderFormProps) {
   const [localUploading, setLocalUploading] = useState(false);
 
   const updateField = (field: keyof ProviderFormData, value: any) => {
@@ -275,7 +276,8 @@ export function ProviderForm({ data, onChange, viewOnly = false, hideTypeSelect 
         </div>
       </label>
 
-      {/* Premium Listing Status & Options */}
+      {/* Premium Listing Status & Options - Hidden for staff */}
+      {!isStaff && (
       <div className="border border-slate-200 rounded-xl p-4 space-y-4 bg-slate-50/50">
         <h4 className="text-xs font-bold text-slate-800 border-b border-slate-200/60 pb-2">خيارات التميز والإعلانات</h4>
         
@@ -324,6 +326,7 @@ export function ProviderForm({ data, onChange, viewOnly = false, hideTypeSelect 
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

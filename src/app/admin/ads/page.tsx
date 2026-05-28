@@ -6,13 +6,15 @@ import { Plus, Trash2, X, Save, Upload, Eye, EyeOff, GripVertical, Image as Imag
 import { supabase } from "@/lib/supabase";
 
 import Image from "next/image";
-import { db } from "@/lib/db";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useEffect } from "react";
+import { useAdminContext } from "@/components/admin/AdminContext";
+import { db } from "@/lib/db";
 
 type Ad = { id: string; title: string; description: string; imageUrl: string; link: string; active: boolean };
 
 export default function AdminAdsPage() {
+  const { isStaff } = useAdminContext();
   const ads = useLiveQuery(() => db.ads.toArray()) || [];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -109,9 +111,11 @@ export default function AdminAdsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <p className="text-sm text-slate-500">إدارة الإعلانات المعروضة في الشريط الإعلاني بالصفحة الرئيسية.</p>
+        {!isStaff && (
         <button onClick={openAddModal} className="flex items-center gap-2 px-4 py-2.5 bg-primary-blue text-white rounded-xl text-sm font-bold shadow-md shadow-primary-blue/20 hover:bg-blue-700">
           <Plus size={16} /> إعلان جديد
         </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -145,6 +149,7 @@ export default function AdminAdsPage() {
               </div>
 
               {/* Actions */}
+              {!isStaff && (
               <div className="p-3 border-t border-slate-100 flex items-center justify-between">
                 <button onClick={() => toggleActive(ad.id)} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${ad.active ? "text-slate-500 hover:bg-slate-50" : "text-emerald-500 hover:bg-emerald-50"}`}>
                   {ad.active ? <><EyeOff size={14} /> إخفاء</> : <><Eye size={14} /> تفعيل</>}
@@ -154,6 +159,7 @@ export default function AdminAdsPage() {
                   <button onClick={() => setDeleteConfirm(ad.id)} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="حذف"><Trash2 size={15} /></button>
                 </div>
               </div>
+              )}
             </GlassCard>
           ))
         )}

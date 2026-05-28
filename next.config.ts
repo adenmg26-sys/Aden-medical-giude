@@ -138,9 +138,6 @@ const withPWA = require("@ducanh2912/next-pwa").default({
       },
     ],
   },
-  fallbacks: {
-    document: "/offline.html",
-  },
 });
 
 const nextConfig: NextConfig = {

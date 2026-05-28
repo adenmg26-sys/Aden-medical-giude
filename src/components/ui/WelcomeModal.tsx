@@ -14,8 +14,18 @@ export const WelcomeModal = () => {
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      (window as any).deferredPrompt = e;
+      // If we've already shown the welcome screen and we get this, show PWA prompt
+      if (localStorage.getItem('has_visited_amg') && !localStorage.getItem('pwa_prompt_dismissed')) {
+        setShowPwaPrompt(true);
+      }
     };
+    
+    // Check if it was already fired before React hydrated
+    if ((window as any).deferredPrompt && localStorage.getItem('has_visited_amg') && !localStorage.getItem('pwa_prompt_dismissed')) {
+      setShowPwaPrompt(true);
+    }
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     return () => {
@@ -31,8 +41,7 @@ export const WelcomeModal = () => {
     } else {
       // Check for PWA if they already visited but didn't dismiss PWA prompt
       const pwaDismissed = localStorage.getItem('pwa_prompt_dismissed');
-      if (!pwaDismissed && !window.matchMedia('(display-mode: standalone)').matches) {
-        // Just an arbitrary delay for return visitors
+      if (!pwaDismissed && !window.matchMedia('(display-mode: standalone)').matches && (window as any).deferredPrompt) {
         const timer = setTimeout(() => setShowPwaPrompt(true), 3000);
         return () => clearTimeout(timer);
       }
@@ -58,14 +67,15 @@ export const WelcomeModal = () => {
   };
 
   const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
+    const promptEvent = (window as any).deferredPrompt;
+    if (promptEvent) {
+      promptEvent.prompt();
+      const { outcome } = await promptEvent.userChoice;
       if (outcome === 'accepted') {
         setShowPwaPrompt(false);
         localStorage.setItem('pwa_prompt_dismissed', 'true');
       }
-      setDeferredPrompt(null);
+      (window as any).deferredPrompt = null;
     } else {
       alert("للتثبيت، يرجى النقر على قائمة المتصفح (ثلاث نقاط) واختيار 'إضافة إلى الشاشة الرئيسية' (Add to Home screen).");
       setShowPwaPrompt(false);

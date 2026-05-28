@@ -32,10 +32,10 @@ export const requestNotificationPermission = async () => {
       if (currentToken) {
         // Save the token to your database so you can send messages to this device later
         if (supabase) {
-           await supabase.from('push_subscriptions').insert([{
+           await supabase.from('push_subscriptions').upsert([{
               endpoint: currentToken,
               keys: { auth: '', p256dh: '' } // Legacy format fields, just use endpoint for FCM
-           }]);
+           }], { onConflict: 'endpoint' });
         }
         return currentToken;
       }

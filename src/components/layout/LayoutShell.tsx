@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { useSync } from "@/hooks/useSync";
+import { useVisitTracker } from "@/hooks/useVisitTracker";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { AlertTriangle, Clock, WifiOff } from "lucide-react";
+import { requestNotificationPermission } from "@/lib/firebase";
 import dynamic from "next/dynamic";
 
 const WelcomeModal = dynamic(() => import("@/components/ui/WelcomeModal").then(mod => mod.WelcomeModal), {
@@ -21,6 +23,21 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   
   // Trigger background sync with Supabase
   useSync();
+  
+  // Track visits
+  useVisitTracker();
+
+  // Request notifications (runs once)
+  useEffect(() => {
+    // Only ask for permissions if we are not in admin, to not annoy admins
+    if (!isAdmin) {
+      // Delay requesting a bit
+      const timer = setTimeout(() => {
+        requestNotificationPermission();
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [isAdmin]);
 
   useEffect(() => {
     setIsOffline(!navigator.onLine);

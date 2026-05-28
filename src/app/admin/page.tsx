@@ -1,13 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Users, FileText, AlertTriangle, TrendingUp, Mail, ArrowLeft, MessageSquare, Clock, ArrowRight, ShieldCheck, Send } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import Link from "next/link";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
+import { useAdminContext } from "@/components/admin/AdminContext";
+import { supabase } from "@/lib/supabase";
 
 export default function AdminDashboardPage() {
+  const { isStaff } = useAdminContext();
   const [notifTitle, setNotifTitle] = useState("");
   const [notifBody, setNotifBody] = useState("");
   const [sending, setSending] = useState(false);
@@ -55,8 +58,33 @@ export default function AdminDashboardPage() {
   const recentContributions = useLiveQuery(() => db.providers.where('status').equals('قيد المراجعة').reverse().limit(5).toArray()) || [];
   const recentMessages = useLiveQuery(() => db.messages.orderBy('date').reverse().limit(3).toArray()) || [];
 
-  const settings = useLiveQuery(() => db.settings.toArray()) || [];
-  const totalVisits = settings.find(s => s.key === 'total_visits')?.value || "1,204";
+  const [visitStats, setVisitStats] = useState({ today: 0, month: 0, total: 0 });
+
+  useEffect(() => {
+    const fetchVisits = async () => {
+      if (!supabase) return;
+      try {
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+        // Since we can't easily do complex aggregations in a single query via JS client without RPC,
+        // we do 3 count queries.
+        const { count: total } = await supabase.from('visits').select('*', { count: 'exact', head: true });
+        const { count: month } = await supabase.from('visits').select('*', { count: 'exact', head: true }).gte('visited_at', startOfMonth);
+        const { count: today } = await supabase.from('visits').select('*', { count: 'exact', head: true }).gte('visited_at', startOfDay);
+
+        setVisitStats({
+          total: total || 0,
+          month: month || 0,
+          today: today || 0
+        });
+      } catch (e) {
+        console.error("Error fetching visits", e);
+      }
+    };
+    fetchVisits();
+  }, []);
 
   return (
     <div className="space-y-8 pb-10">
@@ -191,14 +219,22 @@ export default function AdminDashboardPage() {
                 </div>
                 <h3 className="font-bold">نشاط الموقع</h3>
              </div>
-             <p className="text-3xl font-bold mb-1 font-sans tracking-tight">{Number(totalVisits).toLocaleString('en-US')}</p>
-             <p className="text-white/70 text-xs font-bold">زيارة فريدة اليوم</p>
-             <div className="mt-6 pt-6 border-t border-white/10 flex justify-between items-center text-xs">
-                <span className="text-white/60 font-bold uppercase">الحالة</span>
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" /> متصل الآن</span>
+             <p className="text-3xl font-bold mb-1 font-sans tracking-tight">{visitStats.today.toLocaleString('en-US')}</p>
+             <p className="text-white/70 text-xs font-bold mb-4">زيارة فريدة اليوم</p>
+             
+             <div className="grid grid-cols-2 gap-4 text-center mt-2 border-t border-white/10 pt-4">
+               <div>
+                 <p className="text-xl font-bold font-sans">{visitStats.month.toLocaleString('en-US')}</p>
+                 <p className="text-[10px] text-white/70 font-bold uppercase">هذا الشهر</p>
+               </div>
+               <div>
+                 <p className="text-xl font-bold font-sans">{visitStats.total.toLocaleString('en-US')}</p>
+                 <p className="text-[10px] text-white/70 font-bold uppercase">الإجمالي</p>
+               </div>
              </div>
           </GlassCard>
 
+          {!isStaff && (
           <GlassCard className="p-6">
              <div className="flex items-center gap-2 mb-4">
                <Send size={18} className="text-primary-blue" />
@@ -230,6 +266,7 @@ export default function AdminDashboardPage() {
                </button>
              </form>
           </GlassCard>
+          )}
         </div>
       </div>
     </div>

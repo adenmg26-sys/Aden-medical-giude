@@ -20,9 +20,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { useAdminContext } from "@/components/admin/AdminContext";
+
 export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isStaff, isAdmin } = useAdminContext();
 
   const links = [
     { href: "/admin", label: "لمحة عامة", icon: <LayoutDashboard size={20} /> },
@@ -41,7 +44,12 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
         {!collapsed && (
           <div className="text-center flex-1">
             <h2 className="text-lg font-bold text-primary-blue leading-tight">بوابة الإدارة</h2>
-            <p className="text-[10px] text-slate-500 font-sans">مرشد عدن الطبي</p>
+            <div className="flex flex-col items-center gap-1 mt-1">
+              <p className="text-[10px] text-slate-500 font-sans">مرشد عدن الطبي</p>
+              <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${isAdmin ? 'bg-primary-blue/10 text-primary-blue' : 'bg-slate-100 text-slate-500'}`}>
+                {isAdmin ? 'مدير' : 'موظف'}
+              </span>
+            </div>
           </div>
         )}
         <button 

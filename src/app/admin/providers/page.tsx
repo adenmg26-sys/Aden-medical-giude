@@ -9,6 +9,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db";
 import { useLiveQuery } from "dexie-react-hooks";
+import { useAdminContext } from "@/components/admin/AdminContext";
 
 const emptyFormData: ProviderFormData = {
   type: "doctors",
@@ -21,6 +22,7 @@ const emptyFormData: ProviderFormData = {
 };
 
 export default function AdminProvidersPage() {
+  const { isStaff } = useAdminContext();
   const [activeTab, setActiveTab] = useState<"doctors" | "centers" | "pending">("doctors");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterDistrict, setFilterDistrict] = useState("");
@@ -226,7 +228,7 @@ export default function AdminProvidersPage() {
               <button onClick={() => setIsModalOpen(false)} className="p-1.5 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200"><X size={18} /></button>
             </div>
             <div className="p-5 overflow-y-auto flex-1 custom-scrollbar">
-              <ProviderForm data={formData} onChange={setFormData} viewOnly={viewOnly} hideTypeSelect={viewOnly} onUploadStateChange={setIsUploading} />
+              <ProviderForm data={formData} onChange={setFormData} viewOnly={viewOnly} hideTypeSelect={viewOnly} onUploadStateChange={setIsUploading} isStaff={isStaff} />
             </div>
             <div className="p-5 border-t border-slate-100 flex gap-3 shrink-0 bg-white">
               <button onClick={() => setIsModalOpen(false)} className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50">{viewOnly ? "إغلاق" : "إلغاء"}</button>

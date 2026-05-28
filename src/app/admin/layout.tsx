@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminHeader } from "@/components/admin/AdminHeader";
+import { AdminProvider } from "@/components/admin/AdminContext";
 import { supabase } from "@/lib/supabase";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -56,14 +57,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex" dir="rtl">
-      <AdminSidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${sidebarCollapsed ? "md:mr-[72px]" : "md:mr-64"}`}>
-        <AdminHeader />
-        <main className="p-4 md:p-6 flex-1 overflow-x-hidden">
-          {children}
-        </main>
+    <AdminProvider>
+      <div className="min-h-screen bg-slate-50 flex" dir="rtl">
+        <AdminSidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${sidebarCollapsed ? "md:mr-[72px]" : "md:mr-64"}`}>
+          <AdminHeader />
+          <main className="p-4 md:p-6 flex-1 overflow-x-hidden">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </AdminProvider>
   );
 }

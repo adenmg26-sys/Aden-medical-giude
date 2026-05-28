@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Settings, Globe, Palette, Save, CheckCircle2, Phone, Mail, Shield, Bell, Info, Clock } from "lucide-react";
+import { Settings, Globe, Palette, Save, CheckCircle2, Phone, Mail, Shield, Bell, Info, Clock, AlertTriangle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db";
+import { useAdminContext } from "@/components/admin/AdminContext";
 
 export default function AdminSettingsPage() {
+  const { isStaff } = useAdminContext();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -105,8 +107,16 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="space-y-6 max-w-4xl text-right">
+      {isStaff && (
+        <div className="p-4 bg-amber-50 text-amber-600 rounded-xl flex gap-3 items-start border border-amber-200">
+          <AlertTriangle size={20} className="shrink-0 mt-0.5" />
+          <p className="text-sm font-bold">بصفتك موظف (Staff)، لا تملك الصلاحية لتعديل الإعدادات الأساسية أو إدارة صلاحيات المستخدمين. يمكنك استعراض الإعدادات الحالية فقط.</p>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <p className="text-sm text-slate-500">تحكم في إعدادات الموقع والمعلومات الأساسية.</p>
+        {!isStaff && (
         <button 
           onClick={handleSave} 
           disabled={saving}
@@ -114,6 +124,7 @@ export default function AdminSettingsPage() {
         >
           {saving ? "جاري الحفظ..." : saved ? <><CheckCircle2 size={18} /> تم الحفظ</> : <><Save size={18} /> حفظ التغييرات</>}
         </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -121,13 +132,13 @@ export default function AdminSettingsPage() {
           <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3"><Globe size={20} className="text-primary-blue" /> معلومات الموقع</h2>
           <div className="space-y-1">
             <label className="text-xs font-bold text-slate-700">اسم الموقع (عربي)</label>
-            <input type="text" value={settings.siteName} onChange={(e) => setSettings({...settings, siteName: e.target.value})}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20" />
+            <input type="text" value={settings.siteName} onChange={(e) => setSettings({...settings, siteName: e.target.value})} disabled={isStaff}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 disabled:opacity-60" />
           </div>
           <div className="space-y-1">
             <label className="text-xs font-bold text-slate-700">عن الموقع</label>
-            <textarea rows={4} value={settings.aboutText} onChange={(e) => setSettings({...settings, aboutText: e.target.value})}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 resize-none" />
+            <textarea rows={4} value={settings.aboutText} onChange={(e) => setSettings({...settings, aboutText: e.target.value})} disabled={isStaff}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 resize-none disabled:opacity-60" />
           </div>
           
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
@@ -136,8 +147,9 @@ export default function AdminSettingsPage() {
               <p className="text-[10px] text-slate-500">عند التفعيل، سيظهر تنبيه صيانة للزوار العاديين.</p>
             </div>
             <button 
-              onClick={() => setSettings({...settings, maintenanceMode: !settings.maintenanceMode})}
-              className={`w-12 h-6 rounded-full transition-all relative ${settings.maintenanceMode ? 'bg-amber-500' : 'bg-slate-200'}`}
+              onClick={() => !isStaff && setSettings({...settings, maintenanceMode: !settings.maintenanceMode})}
+              disabled={isStaff}
+              className={`w-12 h-6 rounded-full transition-all relative disabled:opacity-60 ${settings.maintenanceMode ? 'bg-amber-500' : 'bg-slate-200'}`}
             >
               <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.maintenanceMode ? 'left-1' : 'left-7'}`} />
             </button>
@@ -149,23 +161,24 @@ export default function AdminSettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-700">البريد الإلكتروني</label>
-              <input type="email" value={settings.contactEmail} onChange={(e) => setSettings({...settings, contactEmail: e.target.value})}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 font-sans text-left" />
+              <input type="email" value={settings.contactEmail} onChange={(e) => setSettings({...settings, contactEmail: e.target.value})} disabled={isStaff}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 font-sans text-left disabled:opacity-60" />
             </div>
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-700">رقم الهاتف</label>
-              <input type="text" value={settings.contactPhone} onChange={(e) => setSettings({...settings, contactPhone: e.target.value})}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 font-sans text-left" />
+              <input type="text" value={settings.contactPhone} onChange={(e) => setSettings({...settings, contactPhone: e.target.value})} disabled={isStaff}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 font-sans text-left disabled:opacity-60" />
             </div>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-bold text-slate-700">رقم واتساب للدعم</label>
-            <input type="text" value={settings.contactWhatsapp} onChange={(e) => setSettings({...settings, contactWhatsapp: e.target.value})}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 font-sans text-left" />
+            <input type="text" value={settings.contactWhatsapp} onChange={(e) => setSettings({...settings, contactWhatsapp: e.target.value})} disabled={isStaff}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 font-sans text-left disabled:opacity-60" />
           </div>
         </GlassCard>
       </div>
 
+      {!isStaff && (
       <div className="space-y-4 pt-6 border-t border-slate-100">
         <div className="flex items-center gap-2 text-slate-800">
           <Shield size={22} className="text-primary-blue" />
@@ -214,6 +227,7 @@ export default function AdminSettingsPage() {
         </GlassCard>
         <p className="text-[10px] text-slate-400">ملاحظة: يتم إنشاء الحسابات الجديدة عبر لوحة تحكم Supabase مباشرة، وتظهر هنا تلقائياً لتعيين الصلاحيات.</p>
       </div>
+      )}
     </div>
   );
 }
