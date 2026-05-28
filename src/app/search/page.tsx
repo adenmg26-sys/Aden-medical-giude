@@ -9,6 +9,7 @@ import { db } from "@/lib/db";
 import { useLiveQuery } from "dexie-react-hooks";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import Image from "next/image";
 
 function SearchContent() {
   const router = useRouter();
@@ -22,7 +23,7 @@ function SearchContent() {
     
     // Dexie query: search by name, district, or specialty
     const q = searchQuery.toLowerCase();
-    return await db.providers
+    const results = await db.providers
       .filter(p => 
         p.status === 'مفعل' && (
           p.name.toLowerCase().includes(q) || 
@@ -31,6 +32,18 @@ function SearchContent() {
         )
       )
       .toArray();
+
+    // Sort: premium first (by premium_rank), then normal
+    return results.sort((a, b) => {
+      const aPremium = a.is_premium === true || (a.is_premium as unknown as string) === 'true';
+      const bPremium = b.is_premium === true || (b.is_premium as unknown as string) === 'true';
+      if (aPremium && !bPremium) return -1;
+      if (!aPremium && bPremium) return 1;
+      if (aPremium && bPremium) {
+        return (a.premium_rank || 0) - (b.premium_rank || 0);
+      }
+      return 0;
+    });
   }, [searchQuery]) || [];
 
   const filteredSpecialties = specialtyGroups.flatMap(g => g.specialties).filter(s =>
@@ -101,35 +114,48 @@ function SearchContent() {
               <h2 className="text-sm font-bold text-slate-800 mb-3">الأطباء والمراكز المطابقة</h2>
               <div className="space-y-3">
                 {filteredProviders.length > 0 ? (
-                  filteredProviders.map((provider) => (
-                    <Link href={`/providers/${provider.id}`} key={provider.id}>
-                      <GlassCard className="p-4 hover:bg-white/60 transition-all cursor-pointer border-white/50 shadow-md hover:shadow-lg group">
-                        <div className="flex justify-between items-start">
-                          <div className="flex gap-3">
-                             <div className="w-12 h-12 bg-slate-100 group-hover:bg-primary-blue/5 transition-colors rounded-xl flex items-center justify-center text-xl shadow-inner">
-                                {provider.type === "centers" ? "🏥" : "👨‍⚕️"}
-                             </div>
-                             <div>
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-bold text-slate-800 text-base">{provider.name}</h3>
-                                {provider.verified && <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center text-[6px] text-white shadow-sm shadow-blue-500/50">✓</div>}
-                              </div>
-                              <p className="text-primary-red text-[11px] font-bold mt-0.5 opacity-80">{provider.specialty}</p>
-                              <div className="flex items-center gap-3 mt-2 text-[10px] text-slate-500 font-medium">
-                                <span className="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded-md"><MapPin size={10} className="text-slate-400"/> {provider.district}</span>
-                              </div>
-                             </div>
+                  filteredProviders.map((provider) => {
+                    const isPremium = provider.is_premium === true || (provider.is_premium as unknown as string) === 'true';
+                    return (
+                      <Link href={`/providers/${provider.id}`} key={provider.id}>
+                        <GlassCard className={cn(
+                          "p-4 hover:bg-white/50 transition-all cursor-pointer border shadow-md hover:shadow-lg group",
+                          isPremium ? "border-blue-500/30 neon-glow-blue bg-blue-50/5 relative overflow-hidden" : "border-white/50"
+                        )}>
+                          <div className="flex justify-between items-start">
+                            <div className="flex gap-3">
+                               <div className="w-12 h-12 bg-slate-100 group-hover:bg-primary-blue/5 transition-colors rounded-xl flex items-center justify-center text-xl shadow-inner shrink-0 relative overflow-hidden">
+                                  {provider.image ? (
+                                    <Image src={provider.image} alt={provider.name} fill className="object-cover" unoptimized={provider.image.startsWith('data:')} />
+                                  ) : (
+                                    provider.type === "centers" ? "🏥" : "👨‍⚕️"
+                                  )}
+                               </div>
+                               <div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h3 className="font-bold text-slate-800 text-base">{provider.name}</h3>
+                                  {provider.verified && <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center text-[6px] text-white shadow-sm shadow-blue-500/50">✓</div>}
+                                  {isPremium && (
+                                    <span className="bg-amber-500/20 text-amber-600 text-[8px] font-extrabold px-1.5 py-0.5 rounded-md backdrop-blur-sm border border-amber-500/10">مميز ⭐</span>
+                                  )}
+                                </div>
+                                <p className="text-primary-red text-[11px] font-bold mt-0.5 opacity-80">{provider.specialty}</p>
+                                <div className="flex items-center gap-3 mt-2 text-[10px] text-slate-500 font-medium">
+                                  <span className="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded-md"><MapPin size={10} className="text-slate-400"/> {provider.district}</span>
+                                </div>
+                               </div>
+                            </div>
+                            <div className={cn(
+                              "text-[9px] px-2.5 py-1 rounded-full font-bold shadow-sm shrink-0",
+                              provider.status === "open" ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-rose-100 text-rose-700 border border-rose-200"
+                            )}>
+                              {provider.status === "open" ? "متاح الآن" : "مغلق"}
+                            </div>
                           </div>
-                          <div className={cn(
-                            "text-[9px] px-2.5 py-1 rounded-full font-bold shadow-sm",
-                            provider.status === "open" ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-rose-100 text-rose-700 border border-rose-200"
-                          )}>
-                            {provider.status === "open" ? "متاح الآن" : "مغلق"}
-                          </div>
-                        </div>
-                      </GlassCard>
-                    </Link>
-                  ))
+                        </GlassCard>
+                      </Link>
+                    );
+                  })
                 ) : (
                   <div className="text-center py-6 text-slate-500 text-sm">
                     لا يوجد أطباء أو مراكز مطابقة.

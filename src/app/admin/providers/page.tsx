@@ -14,7 +14,10 @@ const emptyFormData: ProviderFormData = {
   type: "doctors",
   name: "", specialty: "", district: "دار سعد", address: "", phone: "", whatsapp: "", image: "", mapLink: "", verified: false,
   shifts: [{ day: "", time: "", location: "" }],
-  centerHours: { openTime: "", closeTime: "", is24h: false }
+  centerHours: { openTime: "", closeTime: "", is24h: false },
+  isPremium: false,
+  premiumRank: 0,
+  showInBanner: false
 };
 
 export default function AdminProvidersPage() {
@@ -57,7 +60,10 @@ export default function AdminProvidersPage() {
       mapLink: item.map_link || "",
       verified: item.verified || false,
       shifts: item.shifts?.length ? [...item.shifts] : [{ day: "", time: "", location: "" }],
-      centerHours: item.center_hours || { openTime: "", closeTime: "", is24h: false }
+      centerHours: item.center_hours || { openTime: "", closeTime: "", is24h: false },
+      isPremium: item.is_premium || false,
+      premiumRank: item.premium_rank || 0,
+      showInBanner: item.show_in_banner || false
     });
   };
 
@@ -92,7 +98,10 @@ export default function AdminProvidersPage() {
       map_link: formData.mapLink,
       verified: formData.verified, 
       status: "مفعل",
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      is_premium: formData.isPremium || false,
+      premium_rank: Number(formData.premiumRank) || 0,
+      show_in_banner: formData.showInBanner || false
     };
 
     if (formData.type === "doctors") {

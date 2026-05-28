@@ -18,6 +18,9 @@ export interface Provider {
   shifts?: WorkShift[]; // For doctors
   center_hours?: CenterHours; // For centers
   updated_at?: string; // To track sync status
+  is_premium?: boolean;
+  premium_rank?: number;
+  show_in_banner?: boolean;
 }
 
 export interface Ad {

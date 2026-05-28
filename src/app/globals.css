@@ -35,3 +35,50 @@ body {
     transform: translateX(100%);
   }
 }
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow-blue {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3), 0 0 10px rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.75), 0 0 25px rgba(59, 130, 246, 0.35);
+    border-color: rgba(59, 130, 246, 0.85);
+  }
+}
+
+.neon-glow-blue {
+  animation: pulse-glow-blue 3s infinite alternate;
+}
+
+@keyframes pulse-glow-red {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(220, 38, 38, 0.3), 0 0 10px rgba(220, 38, 38, 0.15);
+    border-color: rgba(220, 38, 38, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(220, 38, 38, 0.75), 0 0 25px rgba(220, 38, 38, 0.35);
+    border-color: rgba(220, 38, 38, 0.85);
+  }
+}
+
+.neon-glow-red {
+  animation: pulse-glow-red 3s infinite alternate;
+}
+

@@ -22,6 +22,9 @@ export type ProviderFormData = {
   verified: boolean;
   shifts: WorkShift[];
   centerHours: CenterHours;
+  isPremium?: boolean;
+  premiumRank?: number;
+  showInBanner?: boolean;
 };
 
 type ProviderFormProps = {
@@ -271,6 +274,56 @@ export function ProviderForm({ data, onChange, viewOnly = false, hideTypeSelect 
           <p className="text-[10px] text-slate-500">سيظهر علامة التوثيق بجانب الاسم.</p>
         </div>
       </label>
+
+      {/* Premium Listing Status & Options */}
+      <div className="border border-slate-200 rounded-xl p-4 space-y-4 bg-slate-50/50">
+        <h4 className="text-xs font-bold text-slate-800 border-b border-slate-200/60 pb-2">خيارات التميز والإعلانات</h4>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <label className={`flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 ${viewOnly ? 'opacity-60' : 'cursor-pointer hover:border-amber-300 transition-colors'}`}>
+            <input 
+              type="checkbox" 
+              checked={data.isPremium || false} 
+              disabled={viewOnly}
+              onChange={(e) => updateField("isPremium", e.target.checked)} 
+              className="w-4 h-4 accent-amber-500 rounded disabled:opacity-60" 
+            />
+            <div>
+              <span className="text-xs font-bold text-slate-800">مشترك مميز ⭐</span>
+              <p className="text-[9px] text-slate-500">تمييز العيادة في نتائج البحث والترشيح.</p>
+            </div>
+          </label>
+
+          <label className={`flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 ${viewOnly ? 'opacity-60' : 'cursor-pointer hover:border-blue-300 transition-colors'}`}>
+            <input 
+              type="checkbox" 
+              checked={data.showInBanner || false} 
+              disabled={viewOnly}
+              onChange={(e) => updateField("showInBanner", e.target.checked)} 
+              className="w-4 h-4 accent-primary-blue rounded disabled:opacity-60" 
+            />
+            <div>
+              <span className="text-xs font-bold text-slate-800">إظهار في شريط الإعلانات</span>
+              <p className="text-[9px] text-slate-500">عرض الطبيب ببطاقة عائمة بالبانر العلوي.</p>
+            </div>
+          </label>
+        </div>
+
+        {(data.isPremium || data.showInBanner) && (
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">ترتيب التميز والأولوية (الأقل يظهر أولاً)</label>
+            <input 
+              type="number" 
+              min={0}
+              placeholder="مثال: 1 للظهور كأول نتيجة"
+              value={data.premiumRank !== undefined ? data.premiumRank : ""} 
+              disabled={viewOnly}
+              onChange={(e) => updateField("premiumRank", parseInt(e.target.value) || 0)}
+              className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 font-sans disabled:opacity-60" 
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
