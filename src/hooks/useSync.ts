@@ -43,7 +43,7 @@ export function useSync() {
     setError(null);
 
     try {
-      // 0. Process any pending actions first
+      // 0. Process any pending actions first in background
       await processQueue();
 
       // Detect if this is the first sync (IndexedDB is empty)
@@ -59,8 +59,11 @@ export function useSync() {
             .select('*');
           
           if (!e1 && allProv?.length) {
-            await db.providers.clear();
-            await db.providers.bulkPut(allProv);
+            // Use read-write transaction to make DB write atomic & trigger only one UI re-render
+            await db.transaction('rw', db.providers, async () => {
+              await db.providers.clear();
+              await db.providers.bulkPut(allProv);
+            });
           }
         } else {
           // INCREMENTAL SYNC: Only fetch updated records
@@ -84,8 +87,11 @@ export function useSync() {
             .select('*');
           
           if (!e2 && allAds?.length) {
-            await db.ads.clear();
-            await db.ads.bulkPut(allAds);
+            // Atomic transaction for ads
+            await db.transaction('rw', db.ads, async () => {
+              await db.ads.clear();
+              await db.ads.bulkPut(allAds);
+            });
           }
         } else {
           const lastAd = await db.ads.orderBy('updated_at').reverse().first();
@@ -104,8 +110,10 @@ export function useSync() {
       try {
         const { data: allNotifs, error: e4 } = await supabase.from('notifications').select('*');
         if (!e4 && allNotifs) {
-          await db.notifications.clear();
-          if (allNotifs.length > 0) await db.notifications.bulkPut(allNotifs);
+          await db.transaction('rw', db.notifications, async () => {
+            await db.notifications.clear();
+            if (allNotifs.length > 0) await db.notifications.bulkPut(allNotifs);
+          });
         }
       } catch (e) { /* skip */ }
 
@@ -113,8 +121,10 @@ export function useSync() {
       try {
         const { data: allMsgs, error: e5 } = await supabase.from('messages').select('*');
         if (!e5 && allMsgs) {
-          await db.messages.clear();
-          if (allMsgs.length > 0) await db.messages.bulkPut(allMsgs);
+          await db.transaction('rw', db.messages, async () => {
+            await db.messages.clear();
+            if (allMsgs.length > 0) await db.messages.bulkPut(allMsgs);
+          });
         }
       } catch (e) { /* skip */ }
 
@@ -122,8 +132,10 @@ export function useSync() {
       try {
         const { data: allReports, error: e6 } = await supabase.from('reports').select('*');
         if (!e6 && allReports) {
-          await db.reports.clear();
-          if (allReports.length > 0) await db.reports.bulkPut(allReports);
+          await db.transaction('rw', db.reports, async () => {
+            await db.reports.clear();
+            if (allReports.length > 0) await db.reports.bulkPut(allReports);
+          });
         }
       } catch (e) { /* skip */ }
 
@@ -139,8 +151,28 @@ export function useSync() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
-    // Initial sync
-    const timer = setTimeout(syncData, 1500);
+    let idleHandle: any;
+    let timer: NodeJS.Timeout;
+
+    const startSync = () => {
+      // Use requestIdleCallback to perform data loading when the main UI thread is completely idle
+      if ('requestIdleCallback' in window) {
+        idleHandle = (window as any).requestIdleCallback(() => {
+          // 2.5 seconds delay inside idle callback to ensure the page has completely settled
+          timer = setTimeout(syncData, 2500);
+        }, { timeout: 12000 }); // Must run within 12 seconds max
+      } else {
+        // Fallback for Safari/browsers without idle callback support
+        timer = setTimeout(syncData, 4500); // 4.5 seconds delay
+      }
+    };
+
+    // Schedule sync after document is fully loaded
+    if (document.readyState === 'complete') {
+      startSync();
+    } else {
+      window.addEventListener('load', startSync);
+    }
 
     // Sync when coming back online
     const handleOnline = () => {
@@ -149,7 +181,11 @@ export function useSync() {
     window.addEventListener('online', handleOnline);
 
     return () => {
+      if (idleHandle && 'cancelIdleCallback' in window) {
+        (window as any).cancelIdleCallback(idleHandle);
+      }
       clearTimeout(timer);
+      window.removeEventListener('load', startSync);
       window.removeEventListener('online', handleOnline);
     };
   }, [syncData]);
