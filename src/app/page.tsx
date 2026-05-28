@@ -178,9 +178,9 @@ export default function Home() {
             >
               <div className="flex justify-between items-start">
                 <div className="flex gap-3">
-                   <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-xl">
-                      👨‍⚕️
-                   </div>
+                   <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-xl relative overflow-hidden">
+                       {provider.image ? <Image src={provider.image} alt={provider.name} fill className="object-cover" unoptimized={provider.image.startsWith('data:')} /> : '👨‍⚕️'}
+                    </div>
                    <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-bold text-slate-800 text-base">{provider.name}</h3>
@@ -222,9 +222,9 @@ export default function Home() {
             >
               <div className="flex justify-between items-start">
                 <div className="flex gap-3">
-                   <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-xl">
-                      🏥
-                   </div>
+                   <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-xl relative overflow-hidden">
+                       {provider.image ? <Image src={provider.image} alt={provider.name} fill className="object-cover" unoptimized={provider.image.startsWith('data:')} /> : '🏥'}
+                    </div>
                    <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-bold text-slate-800 text-base">{provider.name}</h3>

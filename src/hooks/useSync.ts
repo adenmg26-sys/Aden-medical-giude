@@ -46,29 +46,57 @@ export function useSync() {
       // 0. Process any pending actions first
       await processQueue();
 
+      // Detect if this is the first sync (IndexedDB is empty)
+      const providerCount = await db.providers.count();
+      const isFirstSync = providerCount === 0;
+
       // 1. Sync Providers
       try {
-        const lastProv = await db.providers.orderBy('updated_at').reverse().first();
-        const { data: newProv, error: e1 } = await supabase
-          .from('providers')
-          .select('*')
-          .gt('updated_at', lastProv?.updated_at || '2000-01-01T00:00:00.000Z');
-        
-        if (!e1 && newProv?.length) {
-          await db.providers.bulkPut(newProv);
+        if (isFirstSync) {
+          // FULL SYNC: Load ALL providers on first visit
+          const { data: allProv, error: e1 } = await supabase
+            .from('providers')
+            .select('*');
+          
+          if (!e1 && allProv?.length) {
+            await db.providers.clear();
+            await db.providers.bulkPut(allProv);
+          }
+        } else {
+          // INCREMENTAL SYNC: Only fetch updated records
+          const lastProv = await db.providers.orderBy('updated_at').reverse().first();
+          const { data: newProv, error: e1 } = await supabase
+            .from('providers')
+            .select('*')
+            .gt('updated_at', lastProv?.updated_at || '2000-01-01T00:00:00.000Z');
+          
+          if (!e1 && newProv?.length) {
+            await db.providers.bulkPut(newProv);
+          }
         }
       } catch (e) { /* skip */ }
 
       // 2. Sync Ads
       try {
-        const lastAd = await db.ads.orderBy('updated_at').reverse().first();
-        const { data: newAds, error: e2 } = await supabase
-          .from('ads')
-          .select('*')
-          .gt('updated_at', lastAd?.updated_at || '2000-01-01T00:00:00.000Z');
-        
-        if (!e2 && newAds?.length) {
-          await db.ads.bulkPut(newAds);
+        if (isFirstSync) {
+          const { data: allAds, error: e2 } = await supabase
+            .from('ads')
+            .select('*');
+          
+          if (!e2 && allAds?.length) {
+            await db.ads.clear();
+            await db.ads.bulkPut(allAds);
+          }
+        } else {
+          const lastAd = await db.ads.orderBy('updated_at').reverse().first();
+          const { data: newAds, error: e2 } = await supabase
+            .from('ads')
+            .select('*')
+            .gt('updated_at', lastAd?.updated_at || '2000-01-01T00:00:00.000Z');
+          
+          if (!e2 && newAds?.length) {
+            await db.ads.bulkPut(newAds);
+          }
         }
       } catch (e) { /* skip */ }
 
@@ -78,6 +106,24 @@ export function useSync() {
         if (!e4 && allNotifs) {
           await db.notifications.clear();
           if (allNotifs.length > 0) await db.notifications.bulkPut(allNotifs);
+        }
+      } catch (e) { /* skip */ }
+
+      // 4. Sync Messages (for admin)
+      try {
+        const { data: allMsgs, error: e5 } = await supabase.from('messages').select('*');
+        if (!e5 && allMsgs) {
+          await db.messages.clear();
+          if (allMsgs.length > 0) await db.messages.bulkPut(allMsgs);
+        }
+      } catch (e) { /* skip */ }
+
+      // 5. Sync Reports (for admin)
+      try {
+        const { data: allReports, error: e6 } = await supabase.from('reports').select('*');
+        if (!e6 && allReports) {
+          await db.reports.clear();
+          if (allReports.length > 0) await db.reports.bulkPut(allReports);
         }
       } catch (e) { /* skip */ }
 

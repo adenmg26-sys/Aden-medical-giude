@@ -10,6 +10,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import SkeletonCard from "@/components/ui/SkeletonCard";
+import Image from 'next/image';
 
 export default function CategoryProvidersPage() {
   const params = useParams();
@@ -96,9 +97,9 @@ export default function CategoryProvidersPage() {
                 <GlassCard className="p-4 hover:bg-white/60 transition-all cursor-pointer border-white/50 shadow-md hover:shadow-lg group">
                   <div className="flex justify-between items-start">
                     <div className="flex gap-3">
-                       <div className="w-12 h-12 bg-slate-100 group-hover:bg-primary-blue/5 transition-colors rounded-xl flex items-center justify-center text-xl shadow-inner">
-                          {provider.type === "centers" ? "🏥" : "👨‍⚕️"}
-                       </div>
+                       <div className="w-12 h-12 bg-slate-100 group-hover:bg-primary-blue/5 transition-colors rounded-xl flex items-center justify-center text-xl shadow-inner relative overflow-hidden">
+                           {provider.image ? <Image src={provider.image} alt={provider.name} fill className="object-cover" unoptimized={provider.image.startsWith('data:')} /> : (provider.type === "centers" ? "🏥" : "👨⚕️")}
+                        </div>
                        <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-bold text-slate-800 text-base">{provider.name}</h3>

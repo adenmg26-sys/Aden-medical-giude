@@ -8,11 +8,10 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   cleanupOutdatedCaches: true,
   cacheOnFrontEndNav: true,
   reloadOnOnline: true,
-  swcMinify: true,
   disable: process.env.NODE_ENV === "development",
   workboxOptions: {
     disableDevLogs: true,
-    maximumFileSizeToCacheInBytes: 15 * 1024 * 1024, // 15MB
+    maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
     runtimeCaching: [
       {
         urlPattern: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,

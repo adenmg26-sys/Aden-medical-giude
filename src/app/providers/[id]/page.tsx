@@ -24,6 +24,7 @@ import { useParams } from "next/navigation";
 import { db } from "@/lib/db";
 import { useLiveQuery } from "dexie-react-hooks";
 import { supabase } from "@/lib/supabase";
+import Image from 'next/image';
 
 export default function ProviderDetailPage() {
   const params = useParams();
@@ -133,6 +134,7 @@ export default function ProviderDetailPage() {
     <div className="pb-10">
       {/* Header / Cover */}
       <div className="relative h-48 bg-gradient-to-br from-primary-blue/20 to-primary-red/10 overflow-hidden">
+        {provider.image && <Image src={provider.image} alt="" fill className="object-cover opacity-30" unoptimized={provider.image.startsWith('data:')} />}
         <div className="absolute inset-0 backdrop-blur-3xl" />
         <button 
           onClick={() => window.history.back()}
@@ -151,9 +153,9 @@ export default function ProviderDetailPage() {
       {/* Profile Card Overlay */}
       <div className="px-4 -mt-20 relative z-10 space-y-4">
         <GlassCard className="p-6 text-center shadow-xl border-white/60">
-          <div className="w-24 h-24 bg-white rounded-3xl shadow-lg mx-auto -mt-16 mb-4 flex items-center justify-center text-4xl border-4 border-white">
-            {provider.specialty.includes("صيدلية") ? "💊" : "👨‍⚕️"}
-          </div>
+          <div className="w-24 h-24 bg-white rounded-3xl shadow-lg mx-auto -mt-16 mb-4 flex items-center justify-center text-4xl border-4 border-white relative overflow-hidden">
+             {provider.image ? <Image src={provider.image} alt={provider.name} fill className="object-cover rounded-2xl" unoptimized={provider.image.startsWith('data:')} /> : (provider.specialty.includes("صيدلية") ? "💊" : "👨⚕️")}
+           </div>
           <div className="flex items-center justify-center gap-2 mb-1">
             <h1 className="text-2xl font-bold text-slate-800">{provider.name}</h1>
             {provider.verified && <CheckCircle2 className="text-blue-500 fill-blue-500/10" size={20} />}

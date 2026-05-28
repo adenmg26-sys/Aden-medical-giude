@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Plus, Trash2, X, Save, Upload, Eye, EyeOff, GripVertical, Image as ImageIcon, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import imageCompression from "browser-image-compression";
+
 import Image from "next/image";
 import { db } from "@/lib/db";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -43,6 +43,7 @@ export default function AdminAdsPage() {
           useWebWorker: true,
           fileType: 'image/webp'
         };
+        const imageCompression = (await import("browser-image-compression")).default;
         const compressedFile = await imageCompression(file, options);
         const reader = new FileReader();
         reader.onloadend = () => {
