@@ -11,12 +11,81 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import SkeletonCard from "@/components/ui/SkeletonCard";
 import Image from 'next/image';
+import { adenDistricts } from "@/data/districts";
+
+// Helper function to check if a provider is currently open based on actual working hours/shifts
+function isCurrentlyOpen(provider: any): boolean {
+  if (provider.status === 'open') return true;
+  
+  try {
+    const today = new Date();
+    const dayNames = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+    const todayArabic = dayNames[today.getDay()];
+    
+    if (provider.type === 'centers') {
+      const hours = provider.center_hours;
+      if (!hours) return true; // Default to open if no hours set
+      if (hours.is24h) return true;
+      
+      if (hours.openTime && hours.closeTime) {
+        const nowMin = today.getHours() * 60 + today.getMinutes();
+        const [openH, openM] = hours.openTime.split(':').map(Number);
+        const [closeH, closeM] = hours.closeTime.split(':').map(Number);
+        const openMin = openH * 60 + openM;
+        const closeMin = closeH * 60 + closeM;
+        
+        if (closeMin > openMin) {
+          return nowMin >= openMin && nowMin <= closeMin;
+        } else {
+          // Over midnight (e.g. 22:00 to 02:00)
+          return nowMin >= openMin || nowMin <= closeMin;
+        }
+      }
+      return true;
+    } else if (provider.type === 'doctors') {
+      const shifts = provider.shifts;
+      if (!shifts || shifts.length === 0) return false;
+      
+      return shifts.some((shift: any) => {
+        const day = shift.day;
+        if (!day) return false;
+        if (day === "طوال الأسبوع") return true;
+        if (day.includes(todayArabic)) return true;
+        
+        if (day.includes(" - ")) {
+          const [startDay, endDay] = day.split(" - ");
+          const startIndex = dayNames.indexOf(startDay);
+          const endIndex = dayNames.indexOf(endDay);
+          const todayIndex = dayNames.indexOf(todayArabic);
+          
+          if (startIndex !== -1 && endIndex !== -1 && todayIndex !== -1) {
+            if (startIndex <= endIndex) {
+              return todayIndex >= startIndex && todayIndex <= endIndex;
+            } else {
+              return todayIndex >= startIndex || todayIndex <= endIndex;
+            }
+          }
+        }
+        return false;
+      });
+    }
+  } catch (e) {
+    console.error("Error checking hours:", e);
+  }
+  
+  return false;
+}
 
 export default function CategoryProvidersPage() {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Filtering States
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [selectedDistrict, setSelectedDistrict] = useState("الكل");
+  const [statusFilter, setStatusFilter] = useState("all"); // "all" | "open"
 
   const specialty = getSpecialtyById(id);
   
@@ -27,10 +96,20 @@ export default function CategoryProvidersPage() {
       .toArray();
   }, [specialty]) || [];
   
-  const filteredProviders = providers.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    p.district.toLowerCase().includes(searchQuery.toLowerCase())
-  ).sort((a, b) => {
+  const filteredProviders = providers.filter(p => {
+    // Search Query Filter
+    const matchesSearch = 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      p.district.toLowerCase().includes(searchQuery.toLowerCase());
+      
+    // District Filter
+    const matchesDistrict = selectedDistrict === "الكل" || p.district === selectedDistrict;
+    
+    // Status Filter
+    const matchesStatus = statusFilter === "all" || isCurrentlyOpen(p);
+    
+    return matchesSearch && matchesDistrict && matchesStatus;
+  }).sort((a, b) => {
     const aPremium = a.is_premium === true || (a.is_premium as unknown as string) === 'true';
     const bPremium = b.is_premium === true || (b.is_premium as unknown as string) === 'true';
     if (aPremium && !bPremium) return -1;
@@ -48,6 +127,8 @@ export default function CategoryProvidersPage() {
     );
   }
 
+  const isFilterActive = selectedDistrict !== "الكل" || statusFilter !== "all";
+
   return (
     <div className="pb-10 min-h-screen bg-slate-50/50">
       {/* Header */}
@@ -59,9 +140,20 @@ export default function CategoryProvidersPage() {
           <button onClick={() => router.back()} className="p-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl transition-colors">
             <ArrowRight size={20} />
           </button>
-          <div className="p-2 bg-white/20 backdrop-blur-md rounded-xl">
+          <button 
+            onClick={() => setIsFilterOpen(!isFilterOpen)} 
+            className={cn(
+              "p-2 rounded-xl transition-all relative",
+              isFilterOpen || isFilterActive
+                ? "bg-white text-primary-blue shadow-lg scale-105" 
+                : "bg-white/20 text-white hover:bg-white/30 backdrop-blur-md"
+            )}
+          >
             <Filter size={20} />
-          </div>
+            {isFilterActive && (
+              <span className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white animate-pulse" />
+            )}
+          </button>
         </div>
 
         <div className="relative z-10 flex items-center gap-4">
@@ -70,12 +162,12 @@ export default function CategoryProvidersPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">{specialty.name}</h1>
-            <p className="text-blue-100 text-sm opacity-90 mt-1">{providers.length} طبيب ومركز متاح</p>
+            <p className="text-blue-100 text-sm opacity-90 mt-1">{filteredProviders.length} طبيب ومركز متاح</p>
           </div>
         </div>
       </div>
 
-      <div className="p-4 space-y-6 -mt-4 relative z-20">
+      <div className="p-4 space-y-4 -mt-4 relative z-20">
         {/* Search */}
         <div className="relative">
           <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -90,8 +182,75 @@ export default function CategoryProvidersPage() {
           />
         </div>
 
-        {/* List */}
-        <div className="grid gap-10">
+        {/* Filter Drawer */}
+        {isFilterOpen && (
+          <GlassCard className="p-4 border-white/60 shadow-lg space-y-4 animate-in slide-in-from-top-4 duration-200">
+            {/* Districts Filter */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-700 block">المديرية</label>
+              <div className="flex gap-1.5 overflow-x-auto pb-1.5 scrollbar-hide -mx-2 px-2">
+                <button
+                  onClick={() => setSelectedDistrict("الكل")}
+                  className={cn(
+                    "px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-sm",
+                    selectedDistrict === "الكل"
+                      ? "bg-primary-blue text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  )}
+                >
+                  الكل
+                </button>
+                {adenDistricts.map((district) => (
+                  <button
+                    key={district}
+                    onClick={() => setSelectedDistrict(district)}
+                    className={cn(
+                      "px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-sm",
+                      selectedDistrict === district
+                        ? "bg-primary-blue text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    )}
+                  >
+                    {district}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Status Filter */}
+            <div className="space-y-2 border-t border-slate-100/50 pt-3">
+              <label className="text-xs font-bold text-slate-700 block">الحالة</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setStatusFilter("all")}
+                  className={cn(
+                    "py-2 rounded-xl text-xs font-bold transition-all shadow-sm text-center border",
+                    statusFilter === "all"
+                      ? "bg-primary-blue border-primary-blue text-white"
+                      : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                  )}
+                >
+                  الكل
+                </button>
+                <button
+                  onClick={() => setStatusFilter("open")}
+                  className={cn(
+                    "py-2 rounded-xl text-xs font-bold transition-all shadow-sm text-center border flex items-center justify-center gap-1.5",
+                    statusFilter === "open"
+                      ? "bg-emerald-600 border-emerald-600 text-white"
+                      : "bg-white border-slate-200 text-emerald-600 hover:bg-emerald-50/50"
+                  )}
+                >
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                  مفتوح الآن
+                </button>
+              </div>
+            </div>
+          </GlassCard>
+        )}
+
+        {/* List with 7 gap */}
+        <div className="grid gap-7">
           {providers === undefined ? (
             <>
               <SkeletonCard />
@@ -99,39 +258,42 @@ export default function CategoryProvidersPage() {
               <SkeletonCard />
             </>
           ) : filteredProviders.length > 0 ? (
-            filteredProviders.map((provider) => (
-              <Link href={`/providers/${provider.id}`} key={provider.id}>
-                <GlassCard className={cn(
-                  "p-4 hover:bg-white/60 transition-all cursor-pointer border-white/50 shadow-md hover:shadow-lg group",
-                  (provider.is_premium === true || (provider.is_premium as unknown as string) === 'true') && "border-blue-500/30 neon-glow-blue bg-blue-50/5 relative overflow-hidden"
-                )}>
-                  <div className="flex justify-between items-start">
-                    <div className="flex gap-3">
-                       <div className="w-12 h-12 bg-slate-100 group-hover:bg-primary-blue/5 transition-colors rounded-xl flex items-center justify-center text-xl shadow-inner relative overflow-hidden">
-                           {provider.image ? <Image src={provider.image} alt={provider.name} fill className="object-cover" unoptimized={provider.image.startsWith('data:')} /> : (provider.type === "centers" ? "🏥" : "👨⚕️")}
-                        </div>
-                       <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-bold text-slate-800 text-base">{provider.name}</h3>
-                          {provider.verified && <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center text-[6px] text-white shadow-sm shadow-blue-500/50">✓</div>}
-                          {(provider.is_premium === true || (provider.is_premium as unknown as string) === 'true') && <span className="bg-amber-100 text-amber-600 text-[8px] px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5">مميز ⭐</span>}
-                        </div>
-                        <p className="text-primary-red text-[11px] font-bold mt-0.5 opacity-80">{provider.specialty}</p>
-                        <div className="flex items-center gap-3 mt-2 text-[10px] text-slate-500 font-medium">
-                          <span className="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded-md"><MapPin size={10} className="text-slate-400"/> {provider.district}</span>
-                        </div>
-                       </div>
+            filteredProviders.map((provider) => {
+              const isOpen = isCurrentlyOpen(provider);
+              return (
+                <Link href={`/providers/${provider.id}`} key={provider.id}>
+                  <GlassCard className={cn(
+                    "p-4 hover:bg-white/60 transition-all cursor-pointer border-white/50 shadow-md hover:shadow-lg group",
+                    (provider.is_premium === true || (provider.is_premium as unknown as string) === 'true') && "border-blue-500/30 neon-glow-blue bg-blue-50/5 relative overflow-hidden"
+                  )}>
+                    <div className="flex justify-between items-start">
+                      <div className="flex gap-3">
+                         <div className="w-12 h-12 bg-slate-100 group-hover:bg-primary-blue/5 transition-colors rounded-xl flex items-center justify-center text-xl shadow-inner relative overflow-hidden">
+                             {provider.image ? <Image src={provider.image} alt={provider.name} fill className="object-cover" unoptimized={provider.image.startsWith('data:')} /> : (provider.type === "centers" ? "🏥" : "👨⚕️")}
+                          </div>
+                         <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-bold text-slate-800 text-base">{provider.name}</h3>
+                            {provider.verified && <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center text-[6px] text-white shadow-sm shadow-blue-500/50">✓</div>}
+                            {(provider.is_premium === true || (provider.is_premium as unknown as string) === 'true') && <span className="bg-amber-100 text-amber-600 text-[8px] px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5">مميز ⭐</span>}
+                          </div>
+                          <p className="text-primary-red text-[11px] font-bold mt-0.5 opacity-80">{provider.specialty}</p>
+                          <div className="flex items-center gap-3 mt-2 text-[10px] text-slate-500 font-medium">
+                            <span className="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded-md"><MapPin size={10} className="text-slate-400"/> {provider.district}</span>
+                          </div>
+                         </div>
+                      </div>
+                      <div className={cn(
+                        "text-[9px] px-2.5 py-1 rounded-full font-bold shadow-sm",
+                        isOpen ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-rose-100 text-rose-700 border border-rose-200"
+                      )}>
+                        {isOpen ? "متاح الآن" : "مغلق"}
+                      </div>
                     </div>
-                    <div className={cn(
-                      "text-[9px] px-2.5 py-1 rounded-full font-bold shadow-sm",
-                      provider.status === "open" ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-rose-100 text-rose-700 border border-rose-200"
-                    )}>
-                      {provider.status === "open" ? "متاح الآن" : "مغلق"}
-                    </div>
-                  </div>
-                </GlassCard>
-              </Link>
-            ))
+                  </GlassCard>
+                </Link>
+              );
+            })
           ) : (
             <div className="text-center py-12 px-4">
               <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
