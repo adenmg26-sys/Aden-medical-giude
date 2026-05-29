@@ -18,6 +18,7 @@ export const requestNotificationPermission = async () => {
   try {
     const supported = await isSupported();
     if (!supported) {
+      console.log("Push notifications not supported in this browser.");
       return null;
     }
 
@@ -32,16 +33,27 @@ export const requestNotificationPermission = async () => {
       if (currentToken) {
         // Save the token to your database so you can send messages to this device later
         if (supabase) {
-           await supabase.from('push_subscriptions').upsert([{
+           const { error } = await supabase.from('push_subscriptions').upsert([{
               endpoint: currentToken,
               keys: { auth: '', p256dh: '' } // Legacy format fields, just use endpoint for FCM
            }], { onConflict: 'endpoint' });
+
+           if (error) {
+             console.error("Failed to save push token to Supabase:", error);
+           } else {
+             console.log("Push token successfully saved to Supabase.");
+           }
         }
         return currentToken;
+      } else {
+        console.warn("No registration token available. Request permission to generate one.");
       }
+    } else {
+      console.log("Notification permission not granted. Current state:", permission);
     }
     return null;
   } catch (error) {
+    console.error("Error requesting notification permission:", error);
     return null;
   }
 };

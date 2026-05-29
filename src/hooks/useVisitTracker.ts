@@ -23,9 +23,12 @@ export function useVisitTracker() {
         
         if (!error) {
           localStorage.setItem('last_visit_date', today);
+          console.log("Visit tracked successfully.");
+        } else {
+          console.error("Failed to track visit in Supabase:", error);
         }
       } catch (e) {
-        console.error("Failed to track visit", e);
+        console.error("Exception failed to track visit:", e);
       }
     };
 

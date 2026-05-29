@@ -32,12 +32,27 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Only ask for permissions if we are not in admin, to not annoy admins
     if (!isAdmin) {
-      // Delay requesting a bit
-      const timer = setTimeout(() => {
+      // We use a combination of a delayed timer and user interaction.
+      // Many mobile browsers block permission requests unless triggered by a user gesture.
+      let permissionRequested = false;
+
+      const triggerPermissionRequest = () => {
+        if (permissionRequested) return;
+        permissionRequested = true;
+        
         requestNotificationPermission();
+        
+        document.removeEventListener('click', triggerPermissionRequest);
+        document.removeEventListener('touchstart', triggerPermissionRequest);
+      };
+
+      // Delay requesting a bit, but also listen for user interaction
+      const timer = setTimeout(() => {
+        triggerPermissionRequest();
       }, 8000);
-      
-      // Listen for foreground messages
+
+      document.addEventListener('click', triggerPermissionRequest);
+      document.addEventListener('touchstart', triggerPermissionRequest);
       const listenForMessages = async () => {
         try {
           const payload: any = await onMessageListener();
@@ -70,7 +85,11 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
       
       listenForMessages();
       
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener('click', triggerPermissionRequest);
+        document.removeEventListener('touchstart', triggerPermissionRequest);
+      };
     }
   }, [isAdmin]);
 
