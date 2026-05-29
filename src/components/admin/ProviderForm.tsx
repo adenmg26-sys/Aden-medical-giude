@@ -148,7 +148,7 @@ export function ProviderForm({ data, onChange, viewOnly = false, hideTypeSelect 
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-bold text-slate-700">التخصص *</label>
+          <label className="text-xs font-bold text-slate-700">{data.type === "doctors" ? "التخصص *" : "النوع *"}</label>
           {data.type === "doctors" ? (
             <select 
               value={data.specialty} 
@@ -160,14 +160,22 @@ export function ProviderForm({ data, onChange, viewOnly = false, hideTypeSelect 
               {allSpecialties.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
             </select>
           ) : (
-            <input 
-              type="text" 
+            <select 
               value={data.specialty} 
               disabled={viewOnly}
               onChange={(e) => updateField("specialty", e.target.value)}
-              placeholder="مثال: مستشفى عام، صيدلية"
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 disabled:opacity-60" 
-            />
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 disabled:opacity-60"
+            >
+              <option value="">اختر النوع</option>
+              <option value="مركز طبي">مركز طبي</option>
+              <option value="مستوصف">مستوصف</option>
+              <option value="مستشفى">مستشفى</option>
+              <option value="عيادة">عيادة</option>
+              <option value="صيدلية">صيدلية</option>
+              <option value="مركز علاج طبيعي">مركز علاج طبيعي</option>
+              <option value="مختبر">مختبر</option>
+              <option value="مركز أشعة">مركز أشعة</option>
+            </select>
           )}
         </div>
       </div>
