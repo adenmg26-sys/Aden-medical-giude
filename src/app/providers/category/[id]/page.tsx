@@ -91,7 +91,7 @@ export default function CategoryProvidersPage() {
         </div>
 
         {/* List */}
-        <div className="space-y-5">
+        <div className="space-y-7">
           {providers === undefined ? (
             <>
               <SkeletonCard />
