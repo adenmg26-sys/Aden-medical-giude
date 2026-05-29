@@ -21,6 +21,7 @@ import LastSyncIndicator from "@/components/ui/LastSyncIndicator";
 import SkeletonCard from "@/components/ui/SkeletonCard";
 
 import Image from "next/image";
+import { isPremiumActive, sortProvidersByPremium } from "@/lib/premium";
 
 export default function Home() {
   const router = useRouter();
@@ -28,24 +29,10 @@ export default function Home() {
   // Live queries from IndexedDB - Only show verified/active providers
   const activeProviders = useLiveQuery(() => db.providers.where('status').equals('مفعل').toArray()) || [];
   
-  // Sort function to prioritize premium listings by rank
-  const sortProviders = (list: any[]) => {
-    return [...list].sort((a, b) => {
-      const aPremium = a.is_premium === true || (a.is_premium as unknown as string) === 'true';
-      const bPremium = b.is_premium === true || (b.is_premium as unknown as string) === 'true';
-      if (aPremium && !bPremium) return -1;
-      if (!aPremium && bPremium) return 1;
-      if (aPremium && bPremium) {
-        return (a.premium_rank || 0) - (b.premium_rank || 0);
-      }
-      return 0;
-    });
-  };
-
   const getMixedProviders = (list: any[]) => {
-    const sorted = sortProviders(list);
-    const premium = sorted.filter(p => p.is_premium === true || (p.is_premium as unknown as string) === 'true');
-    const normal = sorted.filter(p => !(p.is_premium === true || (p.is_premium as unknown as string) === 'true'));
+    const sorted = sortProvidersByPremium(list);
+    const premium = sorted.filter(p => isPremiumActive(p));
+    const normal = sorted.filter(p => !isPremiumActive(p));
     
     // Mix: Show up to 3 premium, but always leave at least 2 slots for normal if they exist.
     // So total 5 items: if 3 premium -> 2 normal. if 5 premium -> still 3 premium and 2 normal.
@@ -63,7 +50,7 @@ export default function Home() {
   
   // Filter active providers that should be displayed in the banner and sort them by rank
   const bannerProviders = activeProviders
-    .filter(p => p.show_in_banner === true || (p.show_in_banner as unknown as string) === 'true')
+    .filter(p => (p.show_in_banner === true || (p.show_in_banner as unknown as string) === 'true') && isPremiumActive(p))
     .sort((a, b) => (a.premium_rank || 0) - (b.premium_rank || 0));
 
   // Merge ads and premium doctors/centers using Periodic Injection logic (2 ads, then 1 premium doctor)
@@ -303,7 +290,7 @@ export default function Home() {
               key={provider.id}
               className={cn(
                 "p-4 cursor-pointer hover:bg-white/50 transition-all border border-transparent shadow-sm",
-                (provider.is_premium === true || (provider.is_premium as unknown as string) === 'true') && "border-blue-500/30 neon-glow-blue bg-blue-50/5 relative overflow-hidden"
+                isPremiumActive(provider) && "border-blue-500/30 neon-glow-blue bg-blue-50/5 relative overflow-hidden"
               )}
               onClick={() => handleProviderClick(provider.id)}
             >
@@ -316,7 +303,7 @@ export default function Home() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-bold text-slate-800 text-base">{provider.name}</h3>
                       {provider.verified && <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center text-[6px] text-white">✓</div>}
-                      {(provider.is_premium === true || (provider.is_premium as unknown as string) === 'true') && (
+                      {isPremiumActive(provider) && (
                         <span className="bg-amber-500/20 text-amber-600 text-[8px] font-extrabold px-1.5 py-0.5 rounded-md backdrop-blur-sm border border-amber-500/10">مميز ⭐</span>
                       )}
                     </div>
@@ -353,7 +340,7 @@ export default function Home() {
               key={provider.id}
               className={cn(
                 "p-4 cursor-pointer hover:bg-white/50 transition-all border border-transparent shadow-sm",
-                (provider.is_premium === true || (provider.is_premium as unknown as string) === 'true') && "border-blue-500/30 neon-glow-blue bg-blue-50/5 relative overflow-hidden"
+                isPremiumActive(provider) && "border-blue-500/30 neon-glow-blue bg-blue-50/5 relative overflow-hidden"
               )}
               onClick={() => handleProviderClick(provider.id)}
             >
@@ -366,7 +353,7 @@ export default function Home() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-bold text-slate-800 text-base">{provider.name}</h3>
                       {provider.verified && <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center text-[6px] text-white">✓</div>}
-                      {(provider.is_premium === true || (provider.is_premium as unknown as string) === 'true') && (
+                      {isPremiumActive(provider) && (
                         <span className="bg-amber-500/20 text-amber-600 text-[8px] font-extrabold px-1.5 py-0.5 rounded-md backdrop-blur-sm border border-amber-500/10">مميز ⭐</span>
                       )}
                     </div>

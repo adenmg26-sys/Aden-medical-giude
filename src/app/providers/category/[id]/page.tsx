@@ -12,6 +12,7 @@ import Link from "next/link";
 import SkeletonCard from "@/components/ui/SkeletonCard";
 import Image from 'next/image';
 import { adenDistricts } from "@/data/districts";
+import { isPremiumActive, sortProvidersByPremium } from "@/lib/premium";
 
 // Helper function to check if a provider is currently open based on actual working hours/shifts
 function isCurrentlyOpen(provider: any): boolean {
@@ -96,7 +97,7 @@ export default function CategoryProvidersPage() {
       .toArray();
   }, [specialty]) || [];
   
-  const filteredProviders = providers.filter(p => {
+  const filteredProviders = sortProvidersByPremium(providers.filter(p => {
     // Search Query Filter
     const matchesSearch = 
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -109,14 +110,7 @@ export default function CategoryProvidersPage() {
     const matchesStatus = statusFilter === "all" || isCurrentlyOpen(p);
     
     return matchesSearch && matchesDistrict && matchesStatus;
-  }).sort((a, b) => {
-    const aPremium = a.is_premium === true || (a.is_premium as unknown as string) === 'true';
-    const bPremium = b.is_premium === true || (b.is_premium as unknown as string) === 'true';
-    if (aPremium && !bPremium) return -1;
-    if (!aPremium && bPremium) return 1;
-    if (aPremium && bPremium) return (a.premium_rank || 0) - (b.premium_rank || 0);
-    return 0;
-  });
+  }));
 
   if (!specialty) {
     return (
@@ -264,7 +258,7 @@ export default function CategoryProvidersPage() {
                 <Link href={`/providers/${provider.id}`} key={provider.id}>
                   <GlassCard className={cn(
                     "p-4 hover:bg-white/60 transition-all cursor-pointer border-white/50 shadow-md hover:shadow-lg group",
-                    (provider.is_premium === true || (provider.is_premium as unknown as string) === 'true') && "border-blue-500/30 neon-glow-blue bg-blue-50/5 relative overflow-hidden"
+                    isPremiumActive(provider) && "border-blue-500/30 neon-glow-blue bg-blue-50/5 relative overflow-hidden"
                   )}>
                     <div className="flex justify-between items-start">
                       <div className="flex gap-3">
@@ -275,7 +269,7 @@ export default function CategoryProvidersPage() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="font-bold text-slate-800 text-base">{provider.name}</h3>
                             {provider.verified && <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center text-[6px] text-white shadow-sm shadow-blue-500/50">✓</div>}
-                            {(provider.is_premium === true || (provider.is_premium as unknown as string) === 'true') && <span className="bg-amber-100 text-amber-600 text-[8px] px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5">مميز ⭐</span>}
+                            {isPremiumActive(provider) && <span className="bg-amber-500/20 text-amber-600 text-[8px] font-extrabold px-1.5 py-0.5 rounded-md backdrop-blur-sm border border-amber-500/10">مميز ⭐</span>}
                           </div>
                           <p className="text-primary-red text-[11px] font-bold mt-0.5 opacity-80">{provider.specialty}</p>
                           <div className="flex items-center gap-3 mt-2 text-[10px] text-slate-500 font-medium">

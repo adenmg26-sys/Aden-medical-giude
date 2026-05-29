@@ -18,7 +18,8 @@ const emptyFormData: ProviderFormData = {
   centerHours: { openTime: "", closeTime: "", is24h: false },
   isPremium: false,
   premiumRank: 0,
-  showInBanner: false
+  showInBanner: false,
+  premiumExpiryDate: ""
 };
 
 export default function AdminProvidersPage() {
@@ -65,7 +66,8 @@ export default function AdminProvidersPage() {
       centerHours: item.center_hours || { openTime: "", closeTime: "", is24h: false },
       isPremium: item.is_premium || false,
       premiumRank: item.premium_rank || 0,
-      showInBanner: item.show_in_banner || false
+      showInBanner: item.show_in_banner || false,
+      premiumExpiryDate: item.premium_expiry_date || ""
     });
   };
 
@@ -103,7 +105,8 @@ export default function AdminProvidersPage() {
       updated_at: new Date().toISOString(),
       is_premium: formData.isPremium || false,
       premium_rank: Number(formData.premiumRank) || 0,
-      show_in_banner: formData.showInBanner || false
+      show_in_banner: formData.showInBanner || false,
+      premium_expiry_date: formData.premiumExpiryDate || null
     };
 
     if (formData.type === "doctors") {

@@ -25,6 +25,7 @@ export type ProviderFormData = {
   isPremium?: boolean;
   premiumRank?: number;
   showInBanner?: boolean;
+  premiumExpiryDate?: string;
 };
 
 type ProviderFormProps = {
@@ -320,17 +321,72 @@ export function ProviderForm({ data, onChange, viewOnly = false, hideTypeSelect 
         </div>
 
         {(data.isPremium || data.showInBanner) && (
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-700">ترتيب التميز والأولوية (الأقل يظهر أولاً)</label>
-            <input 
-              type="number" 
-              min={0}
-              placeholder="مثال: 1 للظهور كأول نتيجة"
-              value={data.premiumRank !== undefined ? data.premiumRank : ""} 
-              disabled={viewOnly}
-              onChange={(e) => updateField("premiumRank", parseInt(e.target.value) || 0)}
-              className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 font-sans disabled:opacity-60" 
-            />
+          <div className="space-y-4 pt-2">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">ترتيب التميز والأولوية (الأقل يظهر أولاً)</label>
+              <input 
+                type="number" 
+                min={0}
+                placeholder="مثال: 1 للظهور كأول نتيجة"
+                value={data.premiumRank !== undefined ? data.premiumRank : ""} 
+                disabled={viewOnly}
+                onChange={(e) => updateField("premiumRank", parseInt(e.target.value) || 0)}
+                className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 font-sans disabled:opacity-60" 
+              />
+            </div>
+            
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">تاريخ انتهاء الاشتراك المميز</label>
+              <div className="flex gap-2">
+                <input 
+                  type="date"
+                  value={data.premiumExpiryDate ? new Date(data.premiumExpiryDate).toISOString().split('T')[0] : ""}
+                  disabled={viewOnly}
+                  onChange={(e) => {
+                    if (!e.target.value) updateField("premiumExpiryDate", "");
+                    else updateField("premiumExpiryDate", new Date(e.target.value).toISOString());
+                  }}
+                  className="flex-1 bg-white border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 font-sans disabled:opacity-60"
+                />
+                {!viewOnly && (
+                  <select 
+                    onChange={(e) => {
+                      const months = parseInt(e.target.value);
+                      if (months === 0) updateField("premiumExpiryDate", "");
+                      else {
+                        const date = new Date();
+                        date.setMonth(date.getMonth() + months);
+                        updateField("premiumExpiryDate", date.toISOString());
+                      }
+                      e.target.value = ""; // Reset dropdown
+                    }}
+                    className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none w-32"
+                    defaultValue=""
+                  >
+                    <option value="" disabled>تجديد سريع...</option>
+                    <option value="0">بدون تاريخ</option>
+                    <option value="1">شهر واحد</option>
+                    <option value="3">3 أشهر</option>
+                    <option value="6">6 أشهر</option>
+                    <option value="12">سنة كاملة</option>
+                  </select>
+                )}
+              </div>
+              {data.premiumExpiryDate && (
+                <div className="mt-2 text-xs">
+                  {(() => {
+                    const expiry = new Date(data.premiumExpiryDate);
+                    const now = new Date();
+                    const diffTime = expiry.getTime() - now.getTime();
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays < 0) return <span className="text-rose-500 font-bold">الاشتراك منتهي منذ {Math.abs(diffDays)} يوم</span>;
+                    if (diffDays <= 3) return <span className="text-amber-500 font-bold animate-pulse">تنبيه: الاشتراك ينتهي خلال {diffDays} يوم</span>;
+                    return <span className="text-emerald-500">الاشتراك ساري المفعول ({diffDays} يوم متبقي)</span>;
+                  })()}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
