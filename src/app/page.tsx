@@ -297,7 +297,7 @@ export default function Home() {
           <h2 className="text-sm font-bold text-slate-800">الأطباء المقترحون</h2>
         </div>
         
-        <div className="grid gap-3">
+        <div className="grid gap-2">
           {doctors.map((provider) => (
             <GlassCard
               key={provider.id}
@@ -347,7 +347,7 @@ export default function Home() {
           <Link href="/centers" className="text-xs text-primary-blue font-bold flex items-center">عرض الكل <ChevronLeft size={14}/></Link>
         </div>
         
-        <div className="grid gap-3">
+        <div className="grid gap-2">
           {centers.map((provider) => (
             <GlassCard
               key={provider.id}

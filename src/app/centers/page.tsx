@@ -91,7 +91,7 @@ export default function CentersPage() {
         </div>
       </div>
 
-      <div className="px-4 grid gap-5">
+      <div className="px-4 grid gap-2">
         {filteredCenters.map((provider) => (
           <GlassCard
             key={provider.id}
