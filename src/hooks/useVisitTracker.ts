@@ -16,19 +16,16 @@ export function useVisitTracker() {
         localStorage.setItem('visitor_id', visitorId);
       }
 
-      // Only track once per day per visitor
-      if (lastVisit !== today) {
-        try {
-          const { error } = await supabase.from('visits').insert([
-            { visitor_id: visitorId }
-          ]);
-          
-          if (!error) {
-            localStorage.setItem('last_visit_date', today);
-          }
-        } catch (e) {
-          console.error("Failed to track visit", e);
+      try {
+        const { error } = await supabase.from('visits').insert([
+          { visitor_id: visitorId }
+        ]);
+        
+        if (!error) {
+          localStorage.setItem('last_visit_date', today);
         }
+      } catch (e) {
+        console.error("Failed to track visit", e);
       }
     };
 

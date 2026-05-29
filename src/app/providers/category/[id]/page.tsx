@@ -84,7 +84,7 @@ export default function CategoryProvidersPage() {
         </div>
 
         {/* List */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {providers === undefined ? (
             <>
               <SkeletonCard />
@@ -101,9 +101,10 @@ export default function CategoryProvidersPage() {
                            {provider.image ? <Image src={provider.image} alt={provider.name} fill className="object-cover" unoptimized={provider.image.startsWith('data:')} /> : (provider.type === "centers" ? "🏥" : "👨⚕️")}
                         </div>
                        <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-bold text-slate-800 text-base">{provider.name}</h3>
                           {provider.verified && <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center text-[6px] text-white shadow-sm shadow-blue-500/50">✓</div>}
+                          {(provider.is_premium === true || (provider.is_premium as unknown as string) === 'true') && <span className="bg-amber-100 text-amber-600 text-[8px] px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5">مميز ⭐</span>}
                         </div>
                         <p className="text-primary-red text-[11px] font-bold mt-0.5 opacity-80">{provider.specialty}</p>
                         <div className="flex items-center gap-3 mt-2 text-[10px] text-slate-500 font-medium">

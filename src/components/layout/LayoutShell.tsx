@@ -8,9 +8,10 @@ import { useSync } from "@/hooks/useSync";
 import { useVisitTracker } from "@/hooks/useVisitTracker";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
-import { AlertTriangle, Clock, WifiOff } from "lucide-react";
-import { requestNotificationPermission } from "@/lib/firebase";
+import { AlertTriangle, Clock, WifiOff, Bell } from "lucide-react";
+import { requestNotificationPermission, onMessageListener } from "@/lib/firebase";
 import dynamic from "next/dynamic";
+import { toast, Toaster } from "react-hot-toast";
 
 const WelcomeModal = dynamic(() => import("@/components/ui/WelcomeModal").then(mod => mod.WelcomeModal), {
   ssr: false
@@ -35,6 +36,40 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
       const timer = setTimeout(() => {
         requestNotificationPermission();
       }, 8000);
+      
+      // Listen for foreground messages
+      const listenForMessages = async () => {
+        try {
+          const payload: any = await onMessageListener();
+          if (payload?.notification) {
+            toast.custom((t) => (
+              <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-white shadow-lg rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-5`}>
+                <div className="flex-1 w-0 p-4">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 pt-0.5">
+                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <Bell className="h-5 w-5 text-primary-blue" />
+                      </div>
+                    </div>
+                    <div className="mr-3 flex-1">
+                      <p className="text-sm font-bold text-slate-900 font-arabic">{payload.notification.title}</p>
+                      <p className="mt-1 text-xs text-slate-500 font-arabic">{payload.notification.body}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ), { duration: 5000, position: 'top-center' });
+            
+            // Re-register listener for the next message
+            listenForMessages();
+          }
+        } catch (err) {
+          console.error("Error listening for messages", err);
+        }
+      };
+      
+      listenForMessages();
+      
       return () => clearTimeout(timer);
     }
   }, [isAdmin]);
@@ -78,6 +113,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <Toaster />
       {!isAdmin && <Header />}
       {/* Offline Banner */}
       {isOffline && (

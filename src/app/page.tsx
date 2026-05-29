@@ -42,8 +42,22 @@ export default function Home() {
     });
   };
 
-  const doctors = sortProviders(activeProviders.filter(p => p.type === 'doctors')).slice(0, 5);
-  const centers = sortProviders(activeProviders.filter(p => p.type === 'centers')).slice(0, 5);
+  const getMixedProviders = (list: any[]) => {
+    const sorted = sortProviders(list);
+    const premium = sorted.filter(p => p.is_premium === true || (p.is_premium as unknown as string) === 'true');
+    const normal = sorted.filter(p => !(p.is_premium === true || (p.is_premium as unknown as string) === 'true'));
+    
+    // Mix: Up to 3 premium, and fill the rest (up to 5 total) with normal.
+    // If fewer than 3 premium, more normal will be shown.
+    const selectedPremium = premium.slice(0, 3);
+    const selectedNormal = normal.slice(0, 5 - selectedPremium.length);
+    
+    // Combine and shuffle slightly or just append (premium first)
+    return [...selectedPremium, ...selectedNormal];
+  };
+
+  const doctors = getMixedProviders(activeProviders.filter(p => p.type === 'doctors'));
+  const centers = getMixedProviders(activeProviders.filter(p => p.type === 'centers'));
   
   const dbAds = useLiveQuery(() => db.ads.filter(ad => ad.active === true || (ad.active as unknown as string) === 'true' || (ad.active as unknown as number) === 1).toArray()) || [];
   

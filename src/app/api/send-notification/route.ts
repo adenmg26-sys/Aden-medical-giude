@@ -44,6 +44,16 @@ export async function POST(req: Request) {
         title,
         body,
       },
+      webpush: {
+        fcmOptions: {
+          link: "/",
+        },
+        notification: {
+          icon: "/icons/icon-192x192.png",
+          badge: "/icons/icon-192x192.png",
+          dir: "rtl" as const,
+        }
+      },
       tokens, // Max 500 tokens per multicast
     };
 
