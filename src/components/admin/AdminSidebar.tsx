@@ -16,7 +16,8 @@ import {
   Mail,
   Megaphone,
   Settings,
-  Activity
+  Activity,
+  Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,7 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
     { href: "/admin/messages", label: "الرسائل", icon: <Mail size={20} /> },
     { href: "/admin/ads", label: "الإعلانات", icon: <Megaphone size={20} /> },
     { href: "/admin/activity", label: "سجل النشاط", icon: <Activity size={20} /> },
+    { href: "/admin/premium", label: "الاشتراكات المميزة", icon: <Star size={20} /> },
     { href: "/admin/settings", label: "الإعدادات", icon: <Settings size={20} /> },
   ];
 

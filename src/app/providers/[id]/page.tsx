@@ -25,6 +25,7 @@ import { db } from "@/lib/db";
 import { useLiveQuery } from "dexie-react-hooks";
 import { supabase } from "@/lib/supabase";
 import Image from 'next/image';
+import { ProviderStatusBadge } from "@/components/ui/ProviderStatusBadge";
 
 export default function ProviderDetailPage() {
   const params = useParams();
@@ -164,9 +165,7 @@ export default function ProviderDetailPage() {
           
           <div className="flex items-center justify-center gap-6 text-xs text-slate-500 border-t border-slate-100 pt-4">
             <div className="flex flex-col items-center gap-1">
-              <span className={cn("font-bold text-sm", provider.status === "open" ? "text-emerald-600" : "text-rose-600")}>
-                {provider.status === "open" ? "مفتوح" : "مغلق"}
-              </span>
+              <ProviderStatusBadge provider={provider} className="bg-transparent shadow-none px-0 py-0 text-sm font-bold border-none" />
               <span>الحالة</span>
             </div>
             <div className="w-[1px] h-8 bg-slate-100" />

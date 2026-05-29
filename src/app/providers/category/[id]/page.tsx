@@ -14,68 +14,8 @@ import Image from 'next/image';
 import { adenDistricts } from "@/data/districts";
 import { isPremiumActive, sortProvidersByPremium } from "@/lib/premium";
 
-// Helper function to check if a provider is currently open based on actual working hours/shifts
-function isCurrentlyOpen(provider: any): boolean {
-  if (provider.status === 'open') return true;
-  
-  try {
-    const today = new Date();
-    const dayNames = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
-    const todayArabic = dayNames[today.getDay()];
-    
-    if (provider.type === 'centers') {
-      const hours = provider.center_hours;
-      if (!hours) return true; // Default to open if no hours set
-      if (hours.is24h) return true;
-      
-      if (hours.openTime && hours.closeTime) {
-        const nowMin = today.getHours() * 60 + today.getMinutes();
-        const [openH, openM] = hours.openTime.split(':').map(Number);
-        const [closeH, closeM] = hours.closeTime.split(':').map(Number);
-        const openMin = openH * 60 + openM;
-        const closeMin = closeH * 60 + closeM;
-        
-        if (closeMin > openMin) {
-          return nowMin >= openMin && nowMin <= closeMin;
-        } else {
-          // Over midnight (e.g. 22:00 to 02:00)
-          return nowMin >= openMin || nowMin <= closeMin;
-        }
-      }
-      return true;
-    } else if (provider.type === 'doctors') {
-      const shifts = provider.shifts;
-      if (!shifts || shifts.length === 0) return false;
-      
-      return shifts.some((shift: any) => {
-        const day = shift.day;
-        if (!day) return false;
-        if (day === "طوال الأسبوع") return true;
-        if (day.includes(todayArabic)) return true;
-        
-        if (day.includes(" - ")) {
-          const [startDay, endDay] = day.split(" - ");
-          const startIndex = dayNames.indexOf(startDay);
-          const endIndex = dayNames.indexOf(endDay);
-          const todayIndex = dayNames.indexOf(todayArabic);
-          
-          if (startIndex !== -1 && endIndex !== -1 && todayIndex !== -1) {
-            if (startIndex <= endIndex) {
-              return todayIndex >= startIndex && todayIndex <= endIndex;
-            } else {
-              return todayIndex >= startIndex || todayIndex <= endIndex;
-            }
-          }
-        }
-        return false;
-      });
-    }
-  } catch (e) {
-    console.error("Error checking hours:", e);
-  }
-  
-  return false;
-}
+import { ProviderStatusBadge } from "@/components/ui/ProviderStatusBadge";
+import { isCurrentlyOpen } from "@/lib/status";
 
 export default function CategoryProvidersPage() {
   const params = useParams();
@@ -277,12 +217,7 @@ export default function CategoryProvidersPage() {
                           </div>
                          </div>
                       </div>
-                      <div className={cn(
-                        "text-[9px] px-2.5 py-1 rounded-full font-bold shadow-sm",
-                        isOpen ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-rose-100 text-rose-700 border border-rose-200"
-                      )}>
-                        {isOpen ? "متاح الآن" : "مغلق"}
-                      </div>
+                      <ProviderStatusBadge provider={provider} />
                     </div>
                   </GlassCard>
                 </Link>
