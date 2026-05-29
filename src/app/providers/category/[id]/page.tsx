@@ -249,8 +249,8 @@ export default function CategoryProvidersPage() {
           </GlassCard>
         )}
 
-        {/* List with 7 gap */}
-        <div className="grid gap-7">
+        {/* List with 2 gap */}
+        <div className="grid gap-2">
           {providers === undefined ? (
             <>
               <SkeletonCard />
