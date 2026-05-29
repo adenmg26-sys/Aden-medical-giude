@@ -30,7 +30,14 @@ export default function CategoryProvidersPage() {
   const filteredProviders = providers.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     p.district.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ).sort((a, b) => {
+    const aPremium = a.is_premium === true || (a.is_premium as unknown as string) === 'true';
+    const bPremium = b.is_premium === true || (b.is_premium as unknown as string) === 'true';
+    if (aPremium && !bPremium) return -1;
+    if (!aPremium && bPremium) return 1;
+    if (aPremium && bPremium) return (a.premium_rank || 0) - (b.premium_rank || 0);
+    return 0;
+  });
 
   if (!specialty) {
     return (
@@ -84,7 +91,7 @@ export default function CategoryProvidersPage() {
         </div>
 
         {/* List */}
-        <div className="space-y-4">
+        <div className="space-y-5">
           {providers === undefined ? (
             <>
               <SkeletonCard />
@@ -94,7 +101,10 @@ export default function CategoryProvidersPage() {
           ) : filteredProviders.length > 0 ? (
             filteredProviders.map((provider) => (
               <Link href={`/providers/${provider.id}`} key={provider.id}>
-                <GlassCard className="p-4 hover:bg-white/60 transition-all cursor-pointer border-white/50 shadow-md hover:shadow-lg group">
+                <GlassCard className={cn(
+                  "p-4 hover:bg-white/60 transition-all cursor-pointer border-white/50 shadow-md hover:shadow-lg group",
+                  (provider.is_premium === true || (provider.is_premium as unknown as string) === 'true') && "border-blue-500/30 neon-glow-blue bg-blue-50/5 relative overflow-hidden"
+                )}>
                   <div className="flex justify-between items-start">
                     <div className="flex gap-3">
                        <div className="w-12 h-12 bg-slate-100 group-hover:bg-primary-blue/5 transition-colors rounded-xl flex items-center justify-center text-xl shadow-inner relative overflow-hidden">

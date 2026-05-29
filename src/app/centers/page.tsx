@@ -37,6 +37,13 @@ export default function CentersPage() {
     const matchesSearch = center.name.includes(searchQuery) || (center.specialty && center.specialty.includes(searchQuery));
     const matchesCategory = activeCategory === "الكل" || (center as any).center_subcategory === activeCategory || (center.specialty && center.specialty.includes(activeCategory));
     return matchesSearch && matchesCategory;
+  }).sort((a, b) => {
+    const aPremium = a.is_premium === true || (a.is_premium as unknown as string) === 'true';
+    const bPremium = b.is_premium === true || (b.is_premium as unknown as string) === 'true';
+    if (aPremium && !bPremium) return -1;
+    if (!aPremium && bPremium) return 1;
+    if (aPremium && bPremium) return (a.premium_rank || 0) - (b.premium_rank || 0);
+    return 0;
   });
 
   const handleProviderClick = (id: string | number) => {
@@ -88,7 +95,10 @@ export default function CentersPage() {
         {filteredCenters.map((provider) => (
           <GlassCard
             key={provider.id}
-            className="p-4 cursor-pointer hover:bg-white/40 transition-colors"
+            className={cn(
+              "p-4 cursor-pointer hover:bg-white/40 transition-colors",
+              (provider.is_premium === true || (provider.is_premium as unknown as string) === 'true') && "border-blue-500/30 neon-glow-blue bg-blue-50/5 relative overflow-hidden"
+            )}
             onClick={() => handleProviderClick(provider.id)}
           >
             <div className="flex justify-between items-start">
@@ -97,9 +107,12 @@ export default function CentersPage() {
                      {provider.image ? <Image src={provider.image} alt={provider.name} fill className="object-cover" unoptimized={provider.image.startsWith('data:')} /> : '🏥'}
                   </div>
                  <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-bold text-slate-800 text-base">{provider.name}</h3>
                     {provider.verified && <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center text-[6px] text-white shadow-sm shadow-blue-500/50">✓</div>}
+                    {(provider.is_premium === true || (provider.is_premium as unknown as string) === 'true') && (
+                      <span className="bg-amber-100 text-amber-600 text-[8px] px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5">مميز ⭐</span>
+                    )}
                   </div>
                   <p className="text-primary-red text-xs font-bold mt-0.5">{provider.specialty}</p>
                   <div className="flex items-center gap-3 mt-2 text-[10px] text-slate-500 font-medium">

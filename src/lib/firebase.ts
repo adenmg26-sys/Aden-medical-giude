@@ -16,13 +16,18 @@ export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getA
 // Request permission and get token
 export const requestNotificationPermission = async () => {
   try {
+    if (!('Notification' in window)) {
+      console.log("This browser does not support notifications.");
+      return null;
+    }
+    const permission = await Notification.requestPermission();
+    
     const supported = await isSupported();
     if (!supported) {
       console.log("Push notifications not supported in this browser.");
       return null;
     }
 
-    const permission = await Notification.requestPermission();
     if (permission === "granted") {
       const messaging = getMessaging(app);
       const currentToken = await getToken(messaging, { 

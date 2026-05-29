@@ -47,12 +47,12 @@ export default function Home() {
     const premium = sorted.filter(p => p.is_premium === true || (p.is_premium as unknown as string) === 'true');
     const normal = sorted.filter(p => !(p.is_premium === true || (p.is_premium as unknown as string) === 'true'));
     
-    // Mix: Up to 3 premium, and fill the rest (up to 5 total) with normal.
-    // If fewer than 3 premium, more normal will be shown.
+    // Mix: Show up to 3 premium, but always leave at least 2 slots for normal if they exist.
+    // So total 5 items: if 3 premium -> 2 normal. if 5 premium -> still 3 premium and 2 normal.
     const selectedPremium = premium.slice(0, 3);
-    const selectedNormal = normal.slice(0, 5 - selectedPremium.length);
+    const selectedNormal = normal.slice(0, Math.max(2, 5 - selectedPremium.length));
     
-    // Combine and shuffle slightly or just append (premium first)
+    // Combine and append (premium first)
     return [...selectedPremium, ...selectedNormal];
   };
 
