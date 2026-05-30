@@ -176,7 +176,7 @@ export default function CategoryProvidersPage() {
                   )}
                 >
                   <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                  مفتوح الآن
+                  متاح الآن
                 </button>
               </div>
             </div>

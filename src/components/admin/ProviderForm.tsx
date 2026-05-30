@@ -26,6 +26,7 @@ export type ProviderFormData = {
   premiumRank?: number;
   showInBanner?: boolean;
   premiumExpiryDate?: string;
+  bio?: string;
 };
 
 type ProviderFormProps = {
@@ -215,6 +216,18 @@ export function ProviderForm({ data, onChange, viewOnly = false, hideTypeSelect 
           placeholder="https://maps.google.com/..."
           dir="ltr"
           className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 disabled:opacity-60 text-left font-sans" 
+        />
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-xs font-bold text-slate-700">نبذة تعريفية (اختياري)</label>
+        <textarea 
+          value={data.bio || ""} 
+          disabled={viewOnly}
+          onChange={(e) => updateField("bio", e.target.value)}
+          placeholder="اكتب نبذة مختصرة عن الطبيب أو المركز..."
+          rows={3}
+          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 disabled:opacity-60 resize-none" 
         />
       </div>
 

@@ -22,6 +22,7 @@ export interface Provider {
   premium_rank?: number;
   show_in_banner?: boolean;
   premium_expiry_date?: string;
+  bio?: string;
 }
 
 export interface Ad {

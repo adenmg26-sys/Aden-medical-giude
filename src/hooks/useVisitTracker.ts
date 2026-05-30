@@ -6,8 +6,14 @@ export function useVisitTracker() {
     const trackVisit = async () => {
       if (typeof window === 'undefined' || !supabase) return;
 
-      const today = new Date().toISOString().split('T')[0];
-      const lastVisit = localStorage.getItem('last_visit_date');
+      const now = Date.now();
+      const lastVisitTimeStr = localStorage.getItem('last_visit_time');
+      const lastVisitTime = lastVisitTimeStr ? parseInt(lastVisitTimeStr, 10) : 0;
+      
+      // Check if 30 minutes (1800000 ms) have passed since the last visit
+      if (now - lastVisitTime < 30 * 60 * 1000) {
+        return; // Too soon to count as a new visit
+      }
       
       // Generate a simple anonymous visitor ID if none exists
       let visitorId = localStorage.getItem('visitor_id');
@@ -22,7 +28,7 @@ export function useVisitTracker() {
         ]);
         
         if (!error) {
-          localStorage.setItem('last_visit_date', today);
+          localStorage.setItem('last_visit_time', now.toString());
           console.log("Visit tracked successfully.");
         } else {
           console.error("Failed to track visit in Supabase:", error);

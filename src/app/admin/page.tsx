@@ -59,6 +59,36 @@ export default function AdminDashboardPage() {
   const recentMessages = useLiveQuery(() => db.messages.orderBy('date').reverse().limit(3).toArray()) || [];
 
   const [visitStats, setVisitStats] = useState({ today: 0, month: 0, total: 0 });
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyStats, setHistoryStats] = useState<{month: string, count: number}[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  const fetchHistory = async () => {
+    if (!supabase) return;
+    setLoadingHistory(true);
+    setShowHistory(true);
+    try {
+      const results = [];
+      const now = new Date();
+      // Fetch for the last 6 months individually
+      for (let i = 0; i < 6; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const nextD = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+        const monthName = d.toLocaleString('ar-EG', { month: 'long', year: 'numeric' });
+        
+        const { count } = await supabase.from('visits').select('*', { count: 'exact', head: true })
+          .gte('visited_at', d.toISOString())
+          .lt('visited_at', nextD.toISOString());
+          
+        results.push({ month: monthName, count: count || 0 });
+      }
+      setHistoryStats(results);
+    } catch (e) {
+      console.error("Error fetching history", e);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   useEffect(() => {
     const fetchVisits = async () => {
@@ -232,6 +262,34 @@ export default function AdminDashboardPage() {
                  <p className="text-[10px] text-white/70 font-bold uppercase">الإجمالي</p>
                </div>
              </div>
+
+             <button 
+               onClick={fetchHistory}
+               className="mt-4 w-full bg-white/10 hover:bg-white/20 transition-colors rounded-xl py-2 text-xs font-bold flex items-center justify-center gap-2"
+             >
+               <Clock size={14} /> سجل الزيارات السابقة
+             </button>
+             
+             {showHistory && (
+               <div className="mt-4 bg-white/10 rounded-xl p-4 text-right">
+                 <h4 className="text-sm font-bold border-b border-white/20 pb-2 mb-2 flex justify-between">
+                   الزيارات السابقة
+                   <button onClick={() => setShowHistory(false)} className="text-white/60 hover:text-white">✕</button>
+                 </h4>
+                 {loadingHistory ? (
+                   <p className="text-xs text-center py-4 text-white/70 animate-pulse">جاري جلب البيانات...</p>
+                 ) : (
+                   <ul className="space-y-2">
+                     {historyStats.map((h, i) => (
+                       <li key={i} className="flex justify-between items-center text-xs">
+                         <span>{h.month}</span>
+                         <span className="font-bold font-sans bg-white/20 px-2 py-0.5 rounded-full">{h.count.toLocaleString('en-US')}</span>
+                       </li>
+                     ))}
+                   </ul>
+                 )}
+               </div>
+             )}
           </GlassCard>
 
           {!isStaff && (

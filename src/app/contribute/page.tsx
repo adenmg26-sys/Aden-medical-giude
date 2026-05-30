@@ -6,6 +6,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { adenDistricts } from "@/data/districts";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 
 export default function ContributePage() {
   const [submitted, setSubmitted] = useState(false);
@@ -23,30 +24,45 @@ export default function ContributePage() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.from('providers').insert([
-        { 
-          name: formData.name,
-          specialty: formData.specialty,
-          district: formData.district,
-          phone: formData.phone,
-          address: '',
-          whatsapp: '',
-          type: 'doctors', 
-          status: 'قيد المراجعة',
-          verified: false,
-          updated_at: new Date().toISOString()
-        }
-      ]);
+      const newProvider = { 
+        id: crypto.randomUUID(),
+        name: formData.name,
+        specialty: formData.specialty,
+        district: formData.district,
+        phone: formData.phone,
+        address: '',
+        whatsapp: '',
+        type: 'doctors', 
+        status: 'قيد المراجعة',
+        verified: false,
+        updated_at: new Date().toISOString()
+      };
       
-      if (error) throw error;
+      await db.providers.add(newProvider as any);
+      await db.sync_queue.add({
+        table: 'providers',
+        action: 'insert',
+        data: newProvider,
+        timestamp: new Date().toISOString()
+      });
       
-      await supabase.from('notifications').insert([{
+      const notif = {
+        id: crypto.randomUUID(),
         title: 'مساهمة جديدة',
         description: `تم إرسال مساهمة بطبيب/مركز جديد: ${formData.name}`,
         type: 'add',
         read: false,
         date: new Date().toISOString()
-      }]);
+      };
+      
+      await db.notifications.add(notif as any);
+      await db.sync_queue.add({
+        table: 'notifications',
+        action: 'insert',
+        data: notif,
+        timestamp: new Date().toISOString()
+      });
+      
       setSubmitted(true);
     } catch (err) {
       alert("عذراً، فشل إرسال البيانات. يرجى المحاولة لاحقاً.");

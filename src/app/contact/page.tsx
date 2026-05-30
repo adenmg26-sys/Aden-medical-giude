@@ -33,6 +33,7 @@ export default function ContactPage() {
 
     setLoading(true);
     const messageData = { 
+      id: crypto.randomUUID(),
       name: form.name, 
       contact: form.contact, 
       content: form.message,

@@ -76,6 +76,7 @@ export default function ProviderDetailPage() {
     const contact = formData.get('contact') as string;
 
     const reportData = {
+      id: crypto.randomUUID(),
       provider_id: id,
       provider_name: provider.name,
       content,
@@ -205,8 +206,18 @@ export default function ProviderDetailPage() {
           )}
         </div>
 
+        {/* Bio Section */}
+        {provider.bio && (
+          <GlassCard className="p-4 space-y-2 mt-4">
+            <h3 className="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2">نبذة تعريفية</h3>
+            <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-line">
+              {provider.bio}
+            </p>
+          </GlassCard>
+        )}
+
         {/* Details Sections */}
-        <div className="space-y-4">
+        <div className="space-y-4 mt-4">
           <GlassCard className="p-4 space-y-4">
             <div className="flex items-start gap-3">
               <div className="p-2 bg-slate-100 rounded-lg text-slate-600"><MapPin size={20}/></div>

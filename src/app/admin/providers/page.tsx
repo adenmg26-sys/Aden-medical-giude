@@ -19,7 +19,8 @@ const emptyFormData: ProviderFormData = {
   isPremium: false,
   premiumRank: 0,
   showInBanner: false,
-  premiumExpiryDate: ""
+  premiumExpiryDate: "",
+  bio: ""
 };
 
 export default function AdminProvidersPage() {
@@ -67,7 +68,8 @@ export default function AdminProvidersPage() {
       isPremium: item.is_premium || false,
       premiumRank: item.premium_rank || 0,
       showInBanner: item.show_in_banner || false,
-      premiumExpiryDate: item.premium_expiry_date || ""
+      premiumExpiryDate: item.premium_expiry_date || "",
+      bio: item.bio || ""
     });
   };
 
@@ -106,7 +108,8 @@ export default function AdminProvidersPage() {
       is_premium: formData.isPremium || false,
       premium_rank: Number(formData.premiumRank) || 0,
       show_in_banner: formData.showInBanner || false,
-      premium_expiry_date: formData.premiumExpiryDate || null
+      premium_expiry_date: formData.premiumExpiryDate || null,
+      bio: formData.bio || ""
     };
 
     if (formData.type === "doctors") {

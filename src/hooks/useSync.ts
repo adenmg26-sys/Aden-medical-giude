@@ -46,63 +46,31 @@ export function useSync() {
       // 0. Process any pending actions first in background
       await processQueue();
 
-      // Detect if this is the first sync (IndexedDB is empty)
-      const providerCount = await db.providers.count();
-      const isFirstSync = providerCount === 0;
-
-      // 1. Sync Providers
+      // 1. Sync Providers (FULL SYNC ALWAYS for consistency)
       try {
-        if (isFirstSync) {
-          // FULL SYNC: Load ALL providers on first visit
-          const { data: allProv, error: e1 } = await supabase
-            .from('providers')
-            .select('*');
-          
-          if (!e1 && allProv?.length) {
-            // Use read-write transaction to make DB write atomic & trigger only one UI re-render
-            await db.transaction('rw', db.providers, async () => {
-              await db.providers.clear();
-              await db.providers.bulkPut(allProv);
-            });
-          }
-        } else {
-          // INCREMENTAL SYNC: Only fetch updated records
-          const lastProv = await db.providers.orderBy('updated_at').reverse().first();
-          const { data: newProv, error: e1 } = await supabase
-            .from('providers')
-            .select('*')
-            .gt('updated_at', lastProv?.updated_at || '2000-01-01T00:00:00.000Z');
-          
-          if (!e1 && newProv?.length) {
-            await db.providers.bulkPut(newProv);
-          }
+        const { data: allProv, error: e1 } = await supabase
+          .from('providers')
+          .select('*');
+        
+        if (!e1 && allProv) {
+          await db.transaction('rw', db.providers, async () => {
+            await db.providers.clear();
+            await db.providers.bulkPut(allProv);
+          });
         }
       } catch (e) { /* skip */ }
 
-      // 2. Sync Ads
+      // 2. Sync Ads (FULL SYNC ALWAYS)
       try {
-        if (isFirstSync) {
-          const { data: allAds, error: e2 } = await supabase
-            .from('ads')
-            .select('*');
-          
-          if (!e2 && allAds?.length) {
-            // Atomic transaction for ads
-            await db.transaction('rw', db.ads, async () => {
-              await db.ads.clear();
-              await db.ads.bulkPut(allAds);
-            });
-          }
-        } else {
-          const lastAd = await db.ads.orderBy('updated_at').reverse().first();
-          const { data: newAds, error: e2 } = await supabase
-            .from('ads')
-            .select('*')
-            .gt('updated_at', lastAd?.updated_at || '2000-01-01T00:00:00.000Z');
-          
-          if (!e2 && newAds?.length) {
-            await db.ads.bulkPut(newAds);
-          }
+        const { data: allAds, error: e2 } = await supabase
+          .from('ads')
+          .select('*');
+        
+        if (!e2 && allAds) {
+          await db.transaction('rw', db.ads, async () => {
+            await db.ads.clear();
+            await db.ads.bulkPut(allAds);
+          });
         }
       } catch (e) { /* skip */ }
 

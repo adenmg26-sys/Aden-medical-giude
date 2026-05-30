@@ -21,7 +21,8 @@ export default function AdminContributionsPage() {
   const [formData, setFormData] = useState<ProviderFormData>({
     type: "doctors", name: "", specialty: "", district: "دار سعد", address: "", phone: "", whatsapp: "", image: "", mapLink: "", verified: false,
     shifts: [{ day: "", time: "", location: "" }],
-    centerHours: { openTime: "", closeTime: "", is24h: false }
+    centerHours: { openTime: "", closeTime: "", is24h: false },
+    bio: ""
   });
 
   const handleAccept = async (contrib: any) => {
@@ -61,7 +62,8 @@ export default function AdminContributionsPage() {
       mapLink: contrib.map_link || "",
       verified: false,
       shifts: contrib.shifts || [{ day: "", time: "", location: "" }],
-      centerHours: contrib.center_hours || { openTime: "", closeTime: "", is24h: false }
+      centerHours: contrib.center_hours || { openTime: "", closeTime: "", is24h: false },
+      bio: contrib.bio || ""
     });
     setMoveModal(contrib);
   };
@@ -81,7 +83,8 @@ export default function AdminContributionsPage() {
       map_link: formData.mapLink,
       verified: formData.verified,
       status: "مفعل",
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      bio: formData.bio || ""
     };
 
     if (formData.type === "doctors") {
