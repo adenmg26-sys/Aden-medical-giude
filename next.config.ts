@@ -113,18 +113,6 @@ const withPWA = require("@ducanh2912/next-pwa").default({
         },
       },
       {
-        urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
-        handler: 'NetworkFirst',
-        options: {
-          cacheName: 'supabase-api',
-          expiration: {
-            maxEntries: 32,
-            maxAgeSeconds: 3600, // 1 hour
-          },
-          networkTimeoutSeconds: 10,
-        },
-      },
-      {
         urlPattern: /.*/i,
         handler: 'NetworkFirst',
         options: {

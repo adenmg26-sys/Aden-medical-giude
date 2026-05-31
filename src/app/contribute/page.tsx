@@ -10,6 +10,7 @@ import { db } from "@/lib/db";
 
 export default function ContributePage() {
   const [submitted, setSubmitted] = useState(false);
+  const [isOfflineSubmit, setIsOfflineSubmit] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -66,6 +67,9 @@ export default function ContributePage() {
       // Trigger background sync immediately
       if (navigator.onLine) {
         window.dispatchEvent(new Event('trigger-sync'));
+        setIsOfflineSubmit(false);
+      } else {
+        setIsOfflineSubmit(true);
       }
       
       setSubmitted(true);
@@ -83,8 +87,14 @@ export default function ContributePage() {
           <CheckCircle2 size={56} />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-slate-800">شكراً لمساهمتك!</h2>
-          <p className="text-slate-500 max-w-xs mx-auto">لقد استلمنا بيانات الطبيب، سيقوم فريق الإدارة بمراجعتها وإضافتها للمرشد قريباً.</p>
+          <h2 className="text-2xl font-bold text-slate-800">
+            {isOfflineSubmit ? "تم الحفظ بنجاح!" : "شكراً لمساهمتك!"}
+          </h2>
+          <p className="text-slate-500 max-w-xs mx-auto">
+            {isOfflineSubmit 
+              ? "أنت غير متصل بالإنترنت حالياً. تم حفظ بيانات الطبيب محلياً وسيتم إرسالها للإدارة تلقائياً عند توفر اتصال بالإنترنت 🕒"
+              : "لقد استلمنا بيانات الطبيب، سيقوم فريق الإدارة بمراجعتها وإضافتها للمرشد قريباً."}
+          </p>
         </div>
         <Link 
           href="/"

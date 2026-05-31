@@ -23,6 +23,7 @@ export interface Provider {
   show_in_banner?: boolean;
   premium_expiry_date?: string;
   bio?: string;
+  deleted_at?: string;
 }
 
 export interface Ad {
@@ -33,6 +34,7 @@ export interface Ad {
   link: string;
   active: boolean;
   updated_at?: string;
+  deleted_at?: string;
 }
 
 export interface Message {

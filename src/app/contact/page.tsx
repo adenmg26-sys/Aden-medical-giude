@@ -13,6 +13,7 @@ export default function ContactPage() {
   const [form, setForm] = useState({ name: "", contact: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [isOfflineSubmit, setIsOfflineSubmit] = useState(false);
   const [honeypot, setHoneypot] = useState("");
 
   // Fetch settings from local DB
@@ -56,6 +57,9 @@ export default function ContactPage() {
       // 3. Trigger background sync immediately
       if (navigator.onLine) {
         window.dispatchEvent(new Event('trigger-sync'));
+        setIsOfflineSubmit(false);
+      } else {
+        setIsOfflineSubmit(true);
       }
 
       setSuccess(true);
@@ -118,8 +122,14 @@ export default function ContactPage() {
                 <CheckCircle2 size={32} />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-800">تم الإرسال بنجاح!</h3>
-                <p className="text-xs text-slate-500 mt-1">شكراً لتواصلك معنا، سنقوم بالرد عليك في أقرب وقت ممكن.</p>
+                <h3 className="text-lg font-bold text-slate-800">
+                  {isOfflineSubmit ? "تم الحفظ بنجاح!" : "تم الإرسال بنجاح!"}
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  {isOfflineSubmit 
+                    ? "أنت غير متصل بالإنترنت حالياً. تم حفظ رسالتك محلياً وسيتم إرسالها تلقائياً عند عودة الاتصال 🕒" 
+                    : "شكراً لتواصلك معنا، سنقوم بالرد عليك في أقرب وقت ممكن."}
+                </p>
               </div>
               <button onClick={() => setSuccess(false)} className="text-primary-blue text-xs font-bold underline">إرسال رسالة أخرى</button>
             </div>

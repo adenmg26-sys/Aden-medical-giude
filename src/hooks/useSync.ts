@@ -46,30 +46,50 @@ export function useSync() {
       // 0. Process any pending actions first in background
       await processQueue();
 
-      // 1. Sync Providers (FULL SYNC ALWAYS for consistency)
+      // 1. Sync Providers (DELTA SYNC with Soft Deletes)
       try {
-        const { data: allProv, error: e1 } = await supabase
-          .from('providers')
-          .select('*');
+        const lastSyncStr = localStorage.getItem('last_sync_timestamp');
+        let query = supabase.from('providers').select('*');
         
-        if (!e1 && allProv) {
+        if (lastSyncStr) {
+          query = query.gt('updated_at', lastSyncStr);
+        }
+        
+        const { data: provs, error: e1 } = await query;
+        
+        if (!e1 && provs && provs.length > 0) {
           await db.transaction('rw', db.providers, async () => {
-            await db.providers.clear();
-            await db.providers.bulkPut(allProv);
+            for (const p of provs) {
+              if (p.deleted_at) {
+                await db.providers.delete(p.id);
+              } else {
+                await db.providers.put(p);
+              }
+            }
           });
         }
       } catch (e) { /* skip */ }
 
-      // 2. Sync Ads (FULL SYNC ALWAYS)
+      // 2. Sync Ads (DELTA SYNC with Soft Deletes)
       try {
-        const { data: allAds, error: e2 } = await supabase
-          .from('ads')
-          .select('*');
+        const lastSyncStr = localStorage.getItem('last_sync_timestamp');
+        let query = supabase.from('ads').select('*');
         
-        if (!e2 && allAds) {
+        if (lastSyncStr) {
+          query = query.gt('updated_at', lastSyncStr);
+        }
+        
+        const { data: ads, error: e2 } = await query;
+        
+        if (!e2 && ads && ads.length > 0) {
           await db.transaction('rw', db.ads, async () => {
-            await db.ads.clear();
-            await db.ads.bulkPut(allAds);
+            for (const a of ads) {
+              if (a.deleted_at) {
+                await db.ads.delete(a.id);
+              } else {
+                await db.ads.put(a);
+              }
+            }
           });
         }
       } catch (e) { /* skip */ }

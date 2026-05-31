@@ -36,6 +36,7 @@ export default function ProviderDetailPage() {
 
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [reportSuccess, setReportSuccess] = useState(false);
+  const [isOfflineSubmit, setIsOfflineSubmit] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
@@ -100,6 +101,9 @@ export default function ProviderDetailPage() {
       // 3. Try to sync immediately if online
       if (navigator.onLine && supabase) {
         window.dispatchEvent(new Event('trigger-sync'));
+        setIsOfflineSubmit(false);
+      } else {
+        setIsOfflineSubmit(true);
       }
 
       setReportSuccess(true);
@@ -302,8 +306,14 @@ export default function ProviderDetailPage() {
                 <div className="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-2">
                   <CheckCircle2 size={32} />
                 </div>
-                <h4 className="font-bold text-slate-800">تم إرسال بلاغك بنجاح</h4>
-                <p className="text-xs text-slate-500">سيقوم فريقنا بمراجعة المعلومات وتحديثها بأقرب وقت. شكراً لمساهمتك!</p>
+                <h4 className="font-bold text-slate-800">
+                  {isOfflineSubmit ? "تم الحفظ بنجاح" : "تم إرسال بلاغك بنجاح"}
+                </h4>
+                <p className="text-xs text-slate-500">
+                  {isOfflineSubmit 
+                    ? "أنت غير متصل بالإنترنت حالياً. تم حفظ البلاغ وسيتم إرساله تلقائياً فور توفر اتصال 🕒"
+                    : "سيقوم فريقنا بمراجعة المعلومات وتحديثها بأقرب وقت. شكراً لمساهمتك!"}
+                </p>
               </div>
             ) : (
               <form onSubmit={handleReportSubmit} className="space-y-4 text-right">
