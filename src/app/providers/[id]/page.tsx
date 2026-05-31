@@ -99,7 +99,7 @@ export default function ProviderDetailPage() {
 
       // 3. Try to sync immediately if online
       if (navigator.onLine && supabase) {
-        // We don't await here to not block UI, useSync will handle it
+        window.dispatchEvent(new Event('trigger-sync'));
       }
 
       setReportSuccess(true);
@@ -275,15 +275,7 @@ export default function ProviderDetailPage() {
             </div>
           </GlassCard>
 
-          <GlassCard className="p-4">
-            <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-              <CheckCircle2 size={18} className="text-primary-blue"/> نبذة تعريفية
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              {provider.specialty} {provider.address ? `- ${provider.address}` : ""} {provider.district ? `- ${provider.district}` : ""}
-            </p>
-          </GlassCard>
-          
+
           <button 
             onClick={() => setIsReportOpen(true)}
             className="w-full flex items-center justify-center gap-2 p-4 text-xs font-bold text-rose-500 bg-rose-50 rounded-2xl hover:bg-rose-100 transition-colors border border-rose-100"

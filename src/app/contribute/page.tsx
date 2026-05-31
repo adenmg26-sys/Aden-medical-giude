@@ -63,6 +63,11 @@ export default function ContributePage() {
         timestamp: new Date().toISOString()
       });
       
+      // Trigger background sync immediately
+      if (navigator.onLine) {
+        window.dispatchEvent(new Event('trigger-sync'));
+      }
+      
       setSubmitted(true);
     } catch (err) {
       alert("عذراً، فشل إرسال البيانات. يرجى المحاولة لاحقاً.");

@@ -52,6 +52,11 @@ export default function ContactPage() {
         data: messageData,
         timestamp: new Date().toISOString()
       });
+      
+      // 3. Trigger background sync immediately
+      if (navigator.onLine) {
+        window.dispatchEvent(new Event('trigger-sync'));
+      }
 
       setSuccess(true);
       setForm({ name: "", contact: "", message: "" });

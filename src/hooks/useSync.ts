@@ -147,6 +147,9 @@ export function useSync() {
       syncData();
     };
     window.addEventListener('online', handleOnline);
+    
+    // Custom event to force sync from other components immediately
+    window.addEventListener('trigger-sync', syncData);
 
     return () => {
       if (idleHandle && 'cancelIdleCallback' in window) {
@@ -155,6 +158,7 @@ export function useSync() {
       clearTimeout(timer);
       window.removeEventListener('load', startSync);
       window.removeEventListener('online', handleOnline);
+      window.removeEventListener('trigger-sync', syncData);
     };
   }, [syncData]);
 
