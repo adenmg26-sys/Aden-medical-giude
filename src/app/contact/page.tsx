@@ -25,6 +25,7 @@ export default function ContactPage() {
 
   const email = settings.contactEmail || "support@adenmedical.com";
   const phone = settings.contactPhone || "+967 770 000 000";
+  const whatsapp = settings.contactWhatsapp || phone;
   const address = settings.address || "عدن، الجمهورية اليمنية";
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -104,13 +105,13 @@ export default function ContactPage() {
             </GlassCard>
           </a>
           
-          <a href={`tel:${phone}`} className="block">
+          <a href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="block">
             <GlassCard className="p-4 flex flex-col items-center justify-center text-center space-y-2 hover:bg-white/60 transition-colors h-full">
               <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
                 <Phone size={24} />
               </div>
-              <h3 className="font-bold text-slate-800 text-sm">اتصال أو واتساب</h3>
-              <p className="text-[10px] text-slate-500 font-sans">{phone}</p>
+              <h3 className="font-bold text-slate-800 text-sm">واتساب الدعم</h3>
+              <p className="text-[10px] text-slate-500 font-sans">{whatsapp}</p>
             </GlassCard>
           </a>
         </div>

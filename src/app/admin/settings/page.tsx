@@ -128,20 +128,10 @@ export default function AdminSettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <GlassCard className="p-6 space-y-5">
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3"><Globe size={20} className="text-primary-blue" /> معلومات الموقع</h2>
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-700">اسم الموقع (عربي)</label>
-            <input type="text" value={settings.siteName} onChange={(e) => setSettings({...settings, siteName: e.target.value})} disabled={isStaff}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 disabled:opacity-60" />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-700">عن الموقع</label>
-            <textarea rows={4} value={settings.aboutText} onChange={(e) => setSettings({...settings, aboutText: e.target.value})} disabled={isStaff}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 resize-none disabled:opacity-60" />
-          </div>
-          
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+        <GlassCard className="p-6 space-y-5 flex flex-col justify-center">
+          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3"><Globe size={20} className="text-primary-blue" /> حالة التطبيق</h2>
+
+          <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2"><Clock size={16} className="text-amber-500" /> وضع الصيانة</h4>
               <p className="text-[10px] text-slate-500">عند التفعيل، سيظهر تنبيه صيانة للزوار العاديين.</p>

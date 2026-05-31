@@ -127,6 +127,17 @@ export function useSync() {
         }
       } catch (e) { /* skip */ }
 
+      // 6. Sync Settings (Global App Settings)
+      try {
+        const { data: allSettings, error: e7 } = await supabase.from('settings').select('*');
+        if (!e7 && allSettings) {
+          await db.transaction('rw', db.settings, async () => {
+            await db.settings.clear();
+            if (allSettings.length > 0) await db.settings.bulkPut(allSettings);
+          });
+        }
+      } catch (e) { /* skip */ }
+
       setLastSyncTime(new Date());
       localStorage.setItem('last_sync_timestamp', new Date().toISOString());
     } catch (err: any) {
