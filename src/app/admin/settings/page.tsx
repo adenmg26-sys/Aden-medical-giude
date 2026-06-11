@@ -37,11 +37,21 @@ export default function AdminSettingsPage() {
         const { data, error } = await supabase.from('settings').select('*');
         if (data && data.length > 0) {
           const mapped = data.reduce((acc: any, curr: any) => {
-            acc[curr.key] = curr.value;
+            let val = curr.value;
+            if (val === 'true') val = true;
+            if (val === 'false') val = false;
+            acc[curr.key] = val;
             return acc;
           }, {});
           setSettings(prev => ({ ...prev, ...mapped }));
-          await db.settings.bulkPut(data.map(d => ({ key: d.key, value: d.value })));
+          
+          const dbData = data.map(d => {
+            let val = d.value;
+            if (val === 'true') val = true;
+            if (val === 'false') val = false;
+            return { key: d.key, value: val };
+          });
+          await db.settings.bulkPut(dbData);
         }
       } catch (err) {
         console.error("Error fetching settings:", err);
@@ -83,16 +93,25 @@ export default function AdminSettingsPage() {
     if (!supabase) return;
     setSaving(true);
     try {
-      const updates = Object.entries(settings).map(([key, value]) => ({
-        key,
-        value,
-        updated_at: new Date().toISOString()
-      }));
+      const allowedKeys = ['maintenanceMode', 'contactEmail', 'contactPhone', 'contactWhatsapp', 'address'];
+      const updates = Object.entries(settings)
+        .filter(([key]) => allowedKeys.includes(key))
+        .map(([key, value]) => ({
+          key,
+          value: String(value),
+          updated_at: new Date().toISOString()
+        }));
 
       const { error } = await supabase.from('settings').upsert(updates);
       if (error) throw error;
 
-      await db.settings.bulkPut(updates.map(u => ({ key: u.key, value: u.value })));
+      const dbUpdates = updates.map(u => {
+        let val: any = u.value;
+        if (val === 'true') val = true;
+        if (val === 'false') val = false;
+        return { key: u.key, value: val };
+      });
+      await db.settings.bulkPut(dbUpdates);
       
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -110,7 +129,7 @@ export default function AdminSettingsPage() {
       {isStaff && (
         <div className="p-4 bg-amber-50 text-amber-600 rounded-xl flex gap-3 items-start border border-amber-200">
           <AlertTriangle size={20} className="shrink-0 mt-0.5" />
-          <p className="text-sm font-bold">بصفتك موظف (Staff)، لا تملك الصلاحية لتعديل الإعدادات الأساسية أو إدارة صلاحيات المستخدمين. يمكنك استعراض الإعدادات الحالية فقط.</p>
+          <p className="text-sm font-bold">بصفتك موظف (Staff), لا تملك الصلاحية لتعديل الإعدادات الأساسية أو إدارة صلاحيات المستخدمين. يمكنك استعراض الإعدادات الحالية فقط.</p>
         </div>
       )}
 
@@ -164,6 +183,11 @@ export default function AdminSettingsPage() {
             <label className="text-xs font-bold text-slate-700">رقم واتساب للدعم</label>
             <input type="text" value={settings.contactWhatsapp} onChange={(e) => setSettings({...settings, contactWhatsapp: e.target.value})} disabled={isStaff}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 font-sans text-left disabled:opacity-60" />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">العنوان</label>
+            <input type="text" value={settings.address} onChange={(e) => setSettings({...settings, address: e.target.value})} disabled={isStaff}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/20 disabled:opacity-60" />
           </div>
         </GlassCard>
       </div>

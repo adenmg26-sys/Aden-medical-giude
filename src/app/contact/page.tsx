@@ -43,23 +43,43 @@ export default function ContactPage() {
       date: new Date().toISOString()
     };
 
-    try {
-      // 1. Save to local DB
-      await db.messages.add(messageData as any);
+    const notif = {
+      id: crypto.randomUUID(),
+      title: 'رسالة جديدة',
+      description: `رسالة جديدة من ${messageData.name}`,
+      type: 'message',
+      read: false,
+      date: new Date().toISOString()
+    };
 
-      // 2. Queue for sync
-      await db.sync_queue.add({
-        table: 'messages',
-        action: 'insert',
-        data: messageData,
-        timestamp: new Date().toISOString()
-      });
-      
-      // 3. Trigger background sync immediately
-      if (navigator.onLine) {
-        window.dispatchEvent(new Event('trigger-sync'));
+    try {
+      if (navigator.onLine && supabase) {
+        // Online: Send directly to Supabase for immediate delivery to admin
+        const { error: e1 } = await supabase.from('messages').insert([messageData]);
+        if (e1) throw e1;
+        const { error: e2 } = await supabase.from('notifications').insert([notif]);
+        
+        // Also save locally
+        await db.messages.put(messageData as any);
+        if (!e2) await db.notifications.put(notif as any);
+        
         setIsOfflineSubmit(false);
       } else {
+        // Offline: Save locally and queue for later sync
+        await db.messages.add(messageData as any);
+        await db.sync_queue.add({
+          table: 'messages',
+          action: 'insert',
+          data: messageData,
+          timestamp: new Date().toISOString()
+        });
+        await db.notifications.add(notif as any);
+        await db.sync_queue.add({
+          table: 'notifications',
+          action: 'insert',
+          data: notif,
+          timestamp: new Date().toISOString()
+        });
         setIsOfflineSubmit(true);
       }
 
@@ -67,7 +87,7 @@ export default function ContactPage() {
       setForm({ name: "", contact: "", message: "" });
       setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
-      alert("عذراً، فشل حفظ الرسالة محلياً.");
+      alert("عذراً، فشل إرسال الرسالة.");
     } finally {
       setLoading(false);
     }

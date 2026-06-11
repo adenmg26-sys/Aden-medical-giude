@@ -145,39 +145,42 @@ export default function Home() {
         <section className="px-4 pt-4">
           {currentItem.type === "ad" ? (
             // Commercial Ad Template
-            <Link href={currentItem.link || "#"} className="block group">
+            <div className="block group relative">
               <GlassCard className={cn(`bg-gradient-to-r ${currentItem.bg} border-none ${currentItem.text} relative overflow-hidden h-36 flex items-center transition-all duration-500 shadow-xl shadow-slate-200`)}>
                 {currentItem.imageUrl && (
                   <div className="absolute inset-0 z-0">
-                     <Image src={currentItem.imageUrl} alt={currentItem.title} fill className="object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" />
-                     <div className="absolute inset-0 bg-gradient-to-l from-transparent to-slate-900/90" />
+                     <Image src={currentItem.imageUrl} alt={currentItem.title} fill className="object-cover group-hover:scale-105 transition-transform duration-700" unoptimized={currentItem.imageUrl.startsWith('data:')} />
                   </div>
                 )}
                 
-                <div className="relative z-10 w-full flex justify-between items-center px-6">
+                {currentItem.link ? (
+                  <Link href={currentItem.link} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-10" />
+                ) : null}
+
+                <div className="relative z-10 w-full flex justify-between items-center px-6 pointer-events-none">
                   <div className="space-y-1.5 max-w-[70%]">
-                    <span className="bg-white/20 text-[10px] px-2 py-0.5 rounded-full backdrop-blur-md border border-white/20">إعلان ممول</span>
-                    <h3 className="text-lg font-bold leading-tight">{currentItem.title}</h3>
-                    <p className="text-xs opacity-90 line-clamp-2">{currentItem.desc}</p>
+                    <span className="bg-black/30 text-[10px] px-2 py-0.5 rounded-full backdrop-blur-md border border-white/20">إعلان ممول</span>
+                    <h3 className="text-lg font-bold leading-tight drop-shadow-md">{currentItem.title}</h3>
+                    <p className="text-xs opacity-90 line-clamp-2 drop-shadow-sm">{currentItem.desc}</p>
                   </div>
                 </div>
                 
                 {mergedBannerItems.length > 1 && (
                   <>
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20">
-                      <button onClick={(e) => { e.preventDefault(); nextAd(); }} className="bg-black/20 hover:bg-black/40 p-1.5 rounded-full backdrop-blur-sm transition-colors text-white border border-white/10">
-                        <ChevronRight size={16} />
+                      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextAd(); }} className="bg-white/15 hover:bg-white/30 p-1.5 rounded-full backdrop-blur-sm transition-colors text-white/70 hover:text-white border border-white/10">
+                        <ChevronRight size={14} />
                       </button>
                     </div>
                     <div className="absolute left-2 top-1/2 -translate-y-1/2 z-20">
-                      <button onClick={(e) => { e.preventDefault(); prevAd(); }} className="bg-black/20 hover:bg-black/40 p-1.5 rounded-full backdrop-blur-sm transition-colors text-white border border-white/10">
-                        <ChevronLeft size={16} />
+                      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); prevAd(); }} className="bg-white/15 hover:bg-white/30 p-1.5 rounded-full backdrop-blur-sm transition-colors text-white/70 hover:text-white border border-white/10">
+                        <ChevronLeft size={14} />
                       </button>
                     </div>
                   </>
                 )}
               </GlassCard>
-            </Link>
+            </div>
           ) : (
             // Premium Listing Antigravity Card Template
             <Link href={currentItem.link} className="block group animate-float">
@@ -220,13 +223,13 @@ export default function Home() {
                 {mergedBannerItems.length > 1 && (
                   <>
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20">
-                      <button onClick={(e) => { e.preventDefault(); nextAd(); }} className="bg-black/20 hover:bg-black/40 p-1.5 rounded-full backdrop-blur-sm transition-colors text-white border border-white/10">
-                        <ChevronRight size={16} />
+                      <button onClick={(e) => { e.preventDefault(); nextAd(); }} className="bg-slate-500/15 hover:bg-slate-500/30 p-1.5 rounded-full backdrop-blur-sm transition-colors text-slate-400 hover:text-slate-600 border border-slate-300/20">
+                        <ChevronRight size={14} />
                       </button>
                     </div>
                     <div className="absolute left-2 top-1/2 -translate-y-1/2 z-20">
-                      <button onClick={(e) => { e.preventDefault(); prevAd(); }} className="bg-black/20 hover:bg-black/40 p-1.5 rounded-full backdrop-blur-sm transition-colors text-white border border-white/10">
-                        <ChevronLeft size={16} />
+                      <button onClick={(e) => { e.preventDefault(); prevAd(); }} className="bg-slate-500/15 hover:bg-slate-500/30 p-1.5 rounded-full backdrop-blur-sm transition-colors text-slate-400 hover:text-slate-600 border border-slate-300/20">
+                        <ChevronLeft size={14} />
                       </button>
                     </div>
                   </>

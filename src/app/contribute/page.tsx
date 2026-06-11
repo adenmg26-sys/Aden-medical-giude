@@ -21,7 +21,6 @@ export default function ContributePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!supabase) return;
 
     setLoading(true);
     try {
@@ -38,15 +37,7 @@ export default function ContributePage() {
         verified: false,
         updated_at: new Date().toISOString()
       };
-      
-      await db.providers.add(newProvider as any);
-      await db.sync_queue.add({
-        table: 'providers',
-        action: 'insert',
-        data: newProvider,
-        timestamp: new Date().toISOString()
-      });
-      
+
       const notif = {
         id: crypto.randomUUID(),
         title: 'مساهمة جديدة',
@@ -55,20 +46,35 @@ export default function ContributePage() {
         read: false,
         date: new Date().toISOString()
       };
-      
-      await db.notifications.add(notif as any);
-      await db.sync_queue.add({
-        table: 'notifications',
-        action: 'insert',
-        data: notif,
-        timestamp: new Date().toISOString()
-      });
-      
-      // Trigger background sync immediately
-      if (navigator.onLine) {
-        window.dispatchEvent(new Event('trigger-sync'));
+
+      if (navigator.onLine && supabase) {
+        // Online: Send directly to Supabase for immediate delivery to admin
+        const { error: e1 } = await supabase.from('providers').insert([newProvider]);
+        if (e1) throw e1;
+        const { error: e2 } = await supabase.from('notifications').insert([notif]);
+        // Notification failure is non-critical, don't throw
+        
+        // Also save locally for the user's own view
+        await db.providers.put(newProvider as any);
+        if (!e2) await db.notifications.put(notif as any);
+        
         setIsOfflineSubmit(false);
       } else {
+        // Offline: Save locally and queue for later sync
+        await db.providers.add(newProvider as any);
+        await db.sync_queue.add({
+          table: 'providers',
+          action: 'insert',
+          data: newProvider,
+          timestamp: new Date().toISOString()
+        });
+        await db.notifications.add(notif as any);
+        await db.sync_queue.add({
+          table: 'notifications',
+          action: 'insert',
+          data: notif,
+          timestamp: new Date().toISOString()
+        });
         setIsOfflineSubmit(true);
       }
       

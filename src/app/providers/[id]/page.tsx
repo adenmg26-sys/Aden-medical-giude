@@ -86,23 +86,43 @@ export default function ProviderDetailPage() {
       date: new Date().toISOString()
     };
 
-    try {
-      // 1. Save to local DB immediately for UI consistency
-      await db.reports.add(reportData as any);
-      
-      // 2. Queue for remote sync
-      await db.sync_queue.add({
-        table: 'reports',
-        action: 'insert',
-        data: reportData,
-        timestamp: new Date().toISOString()
-      });
+    const notif = {
+      id: crypto.randomUUID(),
+      title: 'بلاغ جديد',
+      description: `بلاغ جديد بخصوص ${reportData.provider_name}`,
+      type: 'report',
+      read: false,
+      date: new Date().toISOString()
+    };
 
-      // 3. Try to sync immediately if online
+    try {
       if (navigator.onLine && supabase) {
-        window.dispatchEvent(new Event('trigger-sync'));
+        // Online: Send directly to Supabase for immediate delivery to admin
+        const { error: e1 } = await supabase.from('reports').insert([reportData]);
+        if (e1) throw e1;
+        const { error: e2 } = await supabase.from('notifications').insert([notif]);
+        
+        // Also save locally
+        await db.reports.put(reportData as any);
+        if (!e2) await db.notifications.put(notif as any);
+        
         setIsOfflineSubmit(false);
       } else {
+        // Offline: Save locally and queue for later sync
+        await db.reports.add(reportData as any);
+        await db.sync_queue.add({
+          table: 'reports',
+          action: 'insert',
+          data: reportData,
+          timestamp: new Date().toISOString()
+        });
+        await db.notifications.add(notif as any);
+        await db.sync_queue.add({
+          table: 'notifications',
+          action: 'insert',
+          data: notif,
+          timestamp: new Date().toISOString()
+        });
         setIsOfflineSubmit(true);
       }
 
@@ -112,7 +132,7 @@ export default function ProviderDetailPage() {
         setReportSuccess(false);
       }, 3000);
     } catch (err) {
-      alert("عذراً، فشل إرسال التبليغ محلياً.");
+      alert("عذراً، فشل إرسال التبليغ.");
     }
   };
 

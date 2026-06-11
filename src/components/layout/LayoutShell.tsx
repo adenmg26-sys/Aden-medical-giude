@@ -108,7 +108,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   // Check Maintenance Mode
   const maintenanceMode = useLiveQuery(async () => {
     const setting = await db.settings.get('maintenanceMode');
-    return setting?.value === true;
+    return setting?.value === true || setting?.value === 'true';
   }, []);
 
   if (maintenanceMode && !isAdmin) {

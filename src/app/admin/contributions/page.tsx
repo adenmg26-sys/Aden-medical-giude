@@ -58,12 +58,16 @@ export default function AdminContributionsPage() {
       address: contrib.address || "",
       phone: contrib.phone || "",
       whatsapp: contrib.whatsapp || "",
-      image: "",
+      image: contrib.image || "",
       mapLink: contrib.map_link || "",
-      verified: false,
+      verified: contrib.verified || false,
       shifts: contrib.shifts || [{ day: "", time: "", location: "" }],
       centerHours: contrib.center_hours || { openTime: "", closeTime: "", is24h: false },
-      bio: contrib.bio || ""
+      bio: contrib.bio || "",
+      isPremium: contrib.is_premium || false,
+      premiumRank: contrib.premium_rank || 0,
+      showInBanner: contrib.show_in_banner || false,
+      premiumExpiryDate: contrib.premium_expiry_date || ""
     });
     setMoveModal(contrib);
   };
@@ -84,7 +88,11 @@ export default function AdminContributionsPage() {
       verified: formData.verified,
       status: "مفعل",
       updated_at: new Date().toISOString(),
-      bio: formData.bio || ""
+      bio: formData.bio || "",
+      is_premium: formData.isPremium || false,
+      premium_rank: Number(formData.premiumRank) || 0,
+      show_in_banner: formData.showInBanner || false,
+      premium_expiry_date: formData.premiumExpiryDate || null
     };
 
     if (formData.type === "doctors") {

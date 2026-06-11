@@ -133,7 +133,15 @@ export function useSync() {
         if (!e7 && allSettings) {
           await db.transaction('rw', db.settings, async () => {
             await db.settings.clear();
-            if (allSettings.length > 0) await db.settings.bulkPut(allSettings);
+            if (allSettings.length > 0) {
+              const parsedSettings = allSettings.map((s: any) => {
+                let val = s.value;
+                if (val === 'true') val = true;
+                if (val === 'false') val = false;
+                return { key: s.key, value: val };
+              });
+              await db.settings.bulkPut(parsedSettings);
+            }
           });
         }
       } catch (e) { /* skip */ }
