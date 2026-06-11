@@ -10,9 +10,24 @@ import { useLiveQuery } from "dexie-react-hooks";
 
 export default function AdminContributionsPage() {
   // Fetch real pending contributions from local DB (synced from Supabase)
-  const contributions = useLiveQuery(() => 
+  const rawProviders = useLiveQuery(() => 
     db.providers.where('status').equals('قيد المراجعة').toArray()
   ) || [];
+
+  const rawMessages = useLiveQuery(() => 
+    db.messages.toArray()
+  ) || [];
+
+  const messageContributions = rawMessages
+    .filter(m => m.content.startsWith('[CONTRIBUTION] '))
+    .map(m => {
+      try {
+        const data = JSON.parse(m.content.replace('[CONTRIBUTION] ', ''));
+        return { ...data, isFromMessage: true, messageId: m.id };
+      } catch(e) { return null; }
+    }).filter(Boolean);
+
+  const contributions = [...rawProviders, ...messageContributions];
 
   const [viewModal, setViewModal] = useState<any>(null);
 
@@ -28,22 +43,42 @@ export default function AdminContributionsPage() {
   const handleAccept = async (contrib: any) => {
     if (!supabase) return;
     try {
-      const { error } = await supabase.from('providers')
-        .update({ status: 'مفعل', updated_at: new Date().toISOString() })
-        .eq('id', contrib.id);
-      if (error) throw error;
-      await db.providers.update(contrib.id, { status: 'مفعل', updated_at: new Date().toISOString() });
+      if (contrib.isFromMessage) {
+        const newProviderData = { ...contrib };
+        delete newProviderData.isFromMessage;
+        delete newProviderData.messageId;
+        newProviderData.status = 'مفعل';
+        newProviderData.updated_at = new Date().toISOString();
+
+        const { error } = await supabase.from('providers').insert([newProviderData]);
+        if (error) throw error;
+        await db.providers.put(newProviderData as any);
+
+        await supabase.from('messages').delete().eq('id', contrib.messageId);
+        await db.messages.delete(contrib.messageId);
+      } else {
+        const { error } = await supabase.from('providers')
+          .update({ status: 'مفعل', updated_at: new Date().toISOString() })
+          .eq('id', contrib.id);
+        if (error) throw error;
+        await db.providers.update(contrib.id, { status: 'مفعل', updated_at: new Date().toISOString() });
+      }
     } catch (err) {
       alert("حدث خطأ أثناء قبول المساهمة");
     }
   };
 
-  const handleReject = async (id: string) => {
+  const handleReject = async (contrib: any) => {
     if (!supabase) return;
     try {
-      const { error } = await supabase.from('providers').delete().eq('id', id);
-      if (error) throw error;
-      await db.providers.delete(id);
+      if (contrib.isFromMessage) {
+        await supabase.from('messages').delete().eq('id', contrib.messageId);
+        await db.messages.delete(contrib.messageId);
+      } else {
+        const { error } = await supabase.from('providers').delete().eq('id', contrib.id);
+        if (error) throw error;
+        await db.providers.delete(contrib.id);
+      }
     } catch (err) {
       alert("حدث خطأ أثناء حذف المساهمة");
     }
@@ -102,11 +137,21 @@ export default function AdminContributionsPage() {
     }
 
     try {
-      const { error } = await supabase.from('providers')
-        .update(dataToSave)
-        .eq('id', moveModal.id);
-      if (error) throw error;
-      await db.providers.update(moveModal.id, dataToSave);
+      if (moveModal.isFromMessage) {
+        const insertData = { ...dataToSave, id: moveModal.id };
+        const { error } = await supabase.from('providers').insert([insertData]);
+        if (error) throw error;
+        await db.providers.put(insertData as any);
+        
+        await supabase.from('messages').delete().eq('id', moveModal.messageId);
+        await db.messages.delete(moveModal.messageId);
+      } else {
+        const { error } = await supabase.from('providers')
+          .update(dataToSave)
+          .eq('id', moveModal.id);
+        if (error) throw error;
+        await db.providers.update(moveModal.id, dataToSave);
+      }
       setMoveModal(null);
     } catch (err) {
       alert("حدث خطأ أثناء حفظ البيانات");
@@ -167,7 +212,7 @@ export default function AdminContributionsPage() {
                         <button onClick={() => handleAccept(cont)} className="p-1.5 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors" title="قبول مباشر">
                           <CheckCircle2 size={16} />
                         </button>
-                        <button onClick={() => handleReject(cont.id)} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="رفض وحذف">
+                        <button onClick={() => handleReject(cont)} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="رفض وحذف">
                           <XCircle size={16} />
                         </button>
                       </div>

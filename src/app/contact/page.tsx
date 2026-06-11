@@ -43,25 +43,14 @@ export default function ContactPage() {
       date: new Date().toISOString()
     };
 
-    const notif = {
-      id: crypto.randomUUID(),
-      title: 'رسالة جديدة',
-      description: `رسالة جديدة من ${messageData.name}`,
-      type: 'message',
-      read: false,
-      date: new Date().toISOString()
-    };
-
     try {
       if (navigator.onLine && supabase) {
         // Online: Send directly to Supabase for immediate delivery to admin
         const { error: e1 } = await supabase.from('messages').insert([messageData]);
         if (e1) throw e1;
-        const { error: e2 } = await supabase.from('notifications').insert([notif]);
         
         // Also save locally
         await db.messages.put(messageData as any);
-        if (!e2) await db.notifications.put(notif as any);
         
         setIsOfflineSubmit(false);
       } else {
@@ -71,13 +60,6 @@ export default function ContactPage() {
           table: 'messages',
           action: 'insert',
           data: messageData,
-          timestamp: new Date().toISOString()
-        });
-        await db.notifications.add(notif as any);
-        await db.sync_queue.add({
-          table: 'notifications',
-          action: 'insert',
-          data: notif,
           timestamp: new Date().toISOString()
         });
         setIsOfflineSubmit(true);

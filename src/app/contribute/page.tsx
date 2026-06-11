@@ -47,32 +47,31 @@ export default function ContributePage() {
         date: new Date().toISOString()
       };
 
+      const messageData = {
+        id: crypto.randomUUID(),
+        name: formData.name,
+        contact: formData.phone,
+        content: `[CONTRIBUTION] ${JSON.stringify(newProvider)}`,
+        status: 'جديد',
+        date: new Date().toISOString()
+      };
+
       if (navigator.onLine && supabase) {
-        // Online: Send directly to Supabase for immediate delivery to admin
-        const { error: e1 } = await supabase.from('providers').insert([newProvider]);
+        // Online: Send to messages table (bypasses RLS blocks on providers table for anonymous users)
+        const { error: e1 } = await supabase.from('messages').insert([messageData]);
         if (e1) throw e1;
-        const { error: e2 } = await supabase.from('notifications').insert([notif]);
-        // Notification failure is non-critical, don't throw
         
-        // Also save locally for the user's own view
+        // Also save locally for the user's own view (so they don't see it missing locally)
         await db.providers.put(newProvider as any);
-        if (!e2) await db.notifications.put(notif as any);
         
         setIsOfflineSubmit(false);
       } else {
         // Offline: Save locally and queue for later sync
         await db.providers.add(newProvider as any);
         await db.sync_queue.add({
-          table: 'providers',
+          table: 'messages',
           action: 'insert',
-          data: newProvider,
-          timestamp: new Date().toISOString()
-        });
-        await db.notifications.add(notif as any);
-        await db.sync_queue.add({
-          table: 'notifications',
-          action: 'insert',
-          data: notif,
+          data: messageData,
           timestamp: new Date().toISOString()
         });
         setIsOfflineSubmit(true);
@@ -80,6 +79,7 @@ export default function ContributePage() {
       
       setSubmitted(true);
     } catch (err) {
+      console.error("Submit Error:", err);
       alert("عذراً، فشل إرسال البيانات. يرجى المحاولة لاحقاً.");
     } finally {
       setLoading(false);

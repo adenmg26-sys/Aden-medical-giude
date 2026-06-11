@@ -21,7 +21,10 @@ export default function AdminMessagesPage() {
         .order('date', { ascending: false });
       
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Filter out contribution payloads
+      const filteredData = (data || []).filter(m => !m.content?.startsWith('[CONTRIBUTION] '));
+      setMessages(filteredData);
     } catch (err) {
       console.error("Error fetching messages:", err);
     } finally {

@@ -13,6 +13,8 @@ export function useSync() {
     const queue = await db.sync_queue.toArray();
     if (queue.length === 0) return;
 
+    const isAdmin = localStorage.getItem('admin_auth') === 'true';
+
     for (const item of queue) {
       try {
         let success = false;
@@ -94,55 +96,45 @@ export function useSync() {
         }
       } catch (e) { /* skip */ }
 
-      // 3. Sync Notifications
-      try {
-        const { data: allNotifs, error: e4 } = await supabase.from('notifications').select('*');
-        if (!e4 && allNotifs) {
-          await db.transaction('rw', db.notifications, async () => {
-            await db.notifications.clear();
-            if (allNotifs.length > 0) await db.notifications.bulkPut(allNotifs);
-          });
-        }
-      } catch (e) { /* skip */ }
+      const isAdmin = localStorage.getItem('admin_auth') === 'true';
 
-      // 4. Sync Messages (for admin)
-      try {
-        const { data: allMsgs, error: e5 } = await supabase.from('messages').select('*');
-        if (!e5 && allMsgs) {
-          await db.transaction('rw', db.messages, async () => {
-            await db.messages.clear();
-            if (allMsgs.length > 0) await db.messages.bulkPut(allMsgs);
-          });
-        }
-      } catch (e) { /* skip */ }
+      if (isAdmin) {
+        // 3. Sync Notifications
+        try {
+          const { data: allNotifs, error: e4 } = await supabase.from('notifications').select('*');
+          if (!e4 && allNotifs && allNotifs.length > 0) {
+            await db.notifications.bulkPut(allNotifs);
+          }
+        } catch (e) { /* skip */ }
 
-      // 5. Sync Reports (for admin)
-      try {
-        const { data: allReports, error: e6 } = await supabase.from('reports').select('*');
-        if (!e6 && allReports) {
-          await db.transaction('rw', db.reports, async () => {
-            await db.reports.clear();
-            if (allReports.length > 0) await db.reports.bulkPut(allReports);
-          });
-        }
-      } catch (e) { /* skip */ }
+        // 4. Sync Messages (for admin)
+        try {
+          const { data: allMsgs, error: e5 } = await supabase.from('messages').select('*');
+          if (!e5 && allMsgs && allMsgs.length > 0) {
+            await db.messages.bulkPut(allMsgs);
+          }
+        } catch (e) { /* skip */ }
+
+        // 5. Sync Reports (for admin)
+        try {
+          const { data: allReports, error: e6 } = await supabase.from('reports').select('*');
+          if (!e6 && allReports && allReports.length > 0) {
+            await db.reports.bulkPut(allReports);
+          }
+        } catch (e) { /* skip */ }
+      }
 
       // 6. Sync Settings (Global App Settings)
       try {
         const { data: allSettings, error: e7 } = await supabase.from('settings').select('*');
-        if (!e7 && allSettings) {
-          await db.transaction('rw', db.settings, async () => {
-            await db.settings.clear();
-            if (allSettings.length > 0) {
-              const parsedSettings = allSettings.map((s: any) => {
-                let val = s.value;
-                if (val === 'true') val = true;
-                if (val === 'false') val = false;
-                return { key: s.key, value: val };
-              });
-              await db.settings.bulkPut(parsedSettings);
-            }
+        if (!e7 && allSettings && allSettings.length > 0) {
+          const parsedSettings = allSettings.map((s: any) => {
+            let val = s.value;
+            if (val === 'true') val = true;
+            if (val === 'false') val = false;
+            return { key: s.key, value: val };
           });
+          await db.settings.bulkPut(parsedSettings);
         }
       } catch (e) { /* skip */ }
 
