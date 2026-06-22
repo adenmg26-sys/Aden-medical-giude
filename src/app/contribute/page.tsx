@@ -38,15 +38,6 @@ export default function ContributePage() {
         updated_at: new Date().toISOString()
       };
 
-      const notif = {
-        id: crypto.randomUUID(),
-        title: 'مساهمة جديدة',
-        description: `تم إرسال مساهمة بطبيب/مركز جديد: ${formData.name}`,
-        type: 'add',
-        read: false,
-        date: new Date().toISOString()
-      };
-
       const messageData = {
         id: crypto.randomUUID(),
         name: formData.name,

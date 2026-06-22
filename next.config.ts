@@ -31,7 +31,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
           cacheName: 'google-fonts-stylesheets',
           expiration: {
             maxEntries: 4,
-            maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
           },
         },
       },
@@ -42,7 +42,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
           cacheName: 'static-font-assets',
           expiration: {
             maxEntries: 4,
-            maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
           },
         },
       },
@@ -53,7 +53,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
           cacheName: 'static-image-assets',
           expiration: {
             maxEntries: 64,
-            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+            maxAgeSeconds: 60 * 24 * 60 * 60, // 60 days
           },
         },
       },
@@ -64,7 +64,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
           cacheName: 'next-image',
           expiration: {
             maxEntries: 64,
-            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+            maxAgeSeconds: 60 * 24 * 60 * 60, // 60 days
           },
         },
       },
@@ -74,8 +74,8 @@ const withPWA = require("@ducanh2912/next-pwa").default({
         options: {
           cacheName: 'static-js-assets',
           expiration: {
-            maxEntries: 32,
-            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+            maxEntries: 48,
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
           },
         },
       },
@@ -86,7 +86,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
           cacheName: 'static-style-assets',
           expiration: {
             maxEntries: 32,
-            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
           },
         },
       },
@@ -97,7 +97,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
           cacheName: 'next-data',
           expiration: {
             maxEntries: 32,
-            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
           },
         },
       },
@@ -108,8 +108,9 @@ const withPWA = require("@ducanh2912/next-pwa").default({
           cacheName: 'start-url',
           expiration: {
             maxEntries: 1,
-            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
           },
+          networkTimeoutSeconds: 5,
         },
       },
       {
@@ -118,13 +119,14 @@ const withPWA = require("@ducanh2912/next-pwa").default({
         options: {
           cacheName: 'others',
           expiration: {
-            maxEntries: 32,
-            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+            maxEntries: 64,
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
           },
-          networkTimeoutSeconds: 10,
+          networkTimeoutSeconds: 5,
         },
       },
     ],
+    offlineGoogleAnalytics: false,
   },
 });
 

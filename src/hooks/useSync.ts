@@ -13,8 +13,6 @@ export function useSync() {
     const queue = await db.sync_queue.toArray();
     if (queue.length === 0) return;
 
-    const isAdmin = localStorage.getItem('admin_auth') === 'true';
-
     for (const item of queue) {
       try {
         let success = false;
