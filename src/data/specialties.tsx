@@ -52,7 +52,7 @@ export const specialtyGroups = [
       { id: "respiratory", name: "أمراض الصدر والجهاز التنفسي", icon: <LungsIcon className="text-primary-red w-8 h-8 drop-shadow-sm" /> },
       { id: "hematology", name: "أمراض الدم والأورام", icon: <RibbonIcon className="text-primary-blue w-8 h-8 drop-shadow-sm" /> },
       { id: "endocrinology", name: "الغدد الصماء والسكري", icon: <PancreasIcon className="text-primary-red w-8 h-8 drop-shadow-sm" /> },
-      { id: "rheumatology", name: "الروماتيزم والمفاصل", icon: <JointIcon className="text-primary-blue w-8 h-8 drop-shadow-sm" /> },
+      { id: "rheumatology", name: "الروماتيزم", icon: <JointIcon className="text-primary-blue w-8 h-8 drop-shadow-sm" /> },
       { id: "neurology", name: "الأعصاب", icon: <BrainIcon className="text-primary-red w-8 h-8 drop-shadow-sm" /> },
       { id: "dermatology", name: "الجلدية", icon: <DermatologyIcon className="text-primary-blue w-8 h-8 drop-shadow-sm" /> },
     ]

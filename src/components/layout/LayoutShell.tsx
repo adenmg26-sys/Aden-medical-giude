@@ -141,7 +141,9 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
       <main className={isAdmin ? "flex-1 w-full relative" : "flex-1 pb-20 max-w-screen-md mx-auto w-full relative"}>
-        {children}
+        <div key={pathname} className="page-transition">
+          {children}
+        </div>
       </main>
       {!isAdmin && <BottomNav />}
       {!isAdmin && <WelcomeModal />}
