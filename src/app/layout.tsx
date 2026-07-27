@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Tajawal } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { LayoutShell } from "@/components/layout/LayoutShell";
@@ -43,6 +44,7 @@ export default function RootLayout({
         <LayoutShell>
           {children}
         </LayoutShell>
+        <SpeedInsights />
       </body>
     </html>
   );
